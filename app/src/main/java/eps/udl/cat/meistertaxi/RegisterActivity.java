@@ -6,21 +6,20 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-public class MainActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_register);
 
         getSupportActionBar().hide();
 
-        Button button = (Button)findViewById(R.id.buttonNewUser);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button buttonCancel = (Button)findViewById(R.id.buttonCancel);
+        buttonCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(getApplicationContext(),RegisterActivity.class);
-                startActivity(i);
+                finish();
             }
         });
     }

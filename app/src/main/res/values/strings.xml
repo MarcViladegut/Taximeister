@@ -1,8 +1,15 @@
 <resources>
     <string name="app_name">Meistertaxi</string>
     <string name="name_user_login">User:</string>
-    <string name="text_button_login">Login</string>
+    <string name="text_button_login">Sign In</string>
     <string name="hint_editText_password">Password</string>
     <string name="text_password_login">Password:</string>
     <string name="hint_editText_usuari">Username</string>
+    <string name="text_button_newUser">Sign Up</string>
+    <string name="text_name_register_activity">New account</string>
+    <string name="Username">Name of the user</string>
+    <string name="textEmail">Email</string>
+    <string name="text_forgot_password">Forgot password?</string>
+    <string name="text_submit">Submit</string>
+    <string name="text_cancel">Cancel</string>
 </resources>
