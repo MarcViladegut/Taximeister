@@ -15,11 +15,20 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportActionBar().hide();
 
-        Button button = (Button)findViewById(R.id.buttonNewUser);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button buttonNewUser = (Button)findViewById(R.id.buttonNewUser);
+        buttonNewUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(),RegisterActivity.class);
+                startActivity(i);
+            }
+        });
+
+        Button buttonLogin = (Button)findViewById(R.id.buttonLogin);
+        buttonLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(),MapsActivity.class);
                 startActivity(i);
             }
         });
