@@ -12,6 +12,10 @@ import java.util.List;
 
 public class DataParser {
 
+    String distance;
+    String duration;
+    int distValue;
+
     /** Receives a JSONObject and returns a list of lists containing latitude and longitude */
     public List<List<HashMap<String,String>>> parse(JSONObject jObject){
 
@@ -28,6 +32,10 @@ public class DataParser {
             for(int i=0;i<jRoutes.length();i++){
                 jLegs = ( (JSONObject)jRoutes.get(i)).getJSONArray("legs");
                 List path = new ArrayList<>();
+
+                distance = ((JSONObject)jLegs.get(0)).getJSONObject("distance").getString("text");
+                distValue = ((JSONObject)jLegs.get(0)).getJSONObject("distance").getInt("value");
+                duration = ((JSONObject)jLegs.get(0)).getJSONObject("duration").getString("text");
 
                 /** Traversing all legs */
                 for(int j=0;j<jLegs.length();j++){
@@ -53,9 +61,7 @@ public class DataParser {
 
         } catch (JSONException e) {
             e.printStackTrace();
-        }catch (Exception e){
-        }
-
+        }catch (Exception e){}
 
         return routes;
     }

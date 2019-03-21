@@ -6,11 +6,19 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +49,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class MenuMapActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+        OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
@@ -53,10 +63,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
 
+    public static final double PRICE_FOR_METER = 0.002;
+    public static final double TAX_INITIAL = 6.57;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
+        setContentView(R.layout.activity_menu_map);
 
         checkLocationPermission();
 
@@ -67,6 +80,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /*fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });*/
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
@@ -124,7 +158,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // Getting URL to the Google Directions API
                     String url = getUrl(origin, dest);
                     Log.d("onMapClick", url);
-                    FetchUrl FetchUrl = new FetchUrl();
+                    MenuMapActivity.FetchUrl FetchUrl = new MenuMapActivity.FetchUrl();
 
                     // Start downloading json data from Google Directions API
                     FetchUrl.execute(url);
@@ -223,7 +257,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            ParserTask parserTask = new ParserTask();
+            MenuMapActivity.ParserTask parserTask = new MenuMapActivity.ParserTask();
 
             // Invokes the thread for parsing the JSON data
             parserTask.execute(result);
@@ -242,6 +276,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             JSONObject jObject;
             List<List<HashMap<String, String>>> routes = null;
+            TextView distance = (TextView)findViewById(R.id.distanceValue);
+            TextView duration = (TextView)findViewById(R.id.durationValue);
+            TextView cost = (TextView)findViewById(R.id.costValue);
+            Double price = 0.0;
 
             try {
                 jObject = new JSONObject(jsonData[0]);
@@ -251,8 +289,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 // Starts parsing data
                 routes = parser.parse(jObject);
-                Log.i("Distance", parser.distance);
-                Log.i("Duration", parser.duration);
+                distance.setText(parser.distance);
+                duration.setText(parser.duration);
+                price = TAX_INITIAL + PRICE_FOR_METER * parser.distValue;
+                cost.setText(String.format("%.2f", price) + " euros");
+
+                Log.i("Cost", Integer.toString(parser.distValue));
                 Log.d("ParserTask", "Executing routes");
                 Log.d("ParserTask", routes.toString());
 
@@ -391,7 +433,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
@@ -414,5 +456,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_map, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.reservation) {
+
+        } else if (id == R.id.configuration) {
+
+        } else if (id == R.id.disconnect) {
+            finish();
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }

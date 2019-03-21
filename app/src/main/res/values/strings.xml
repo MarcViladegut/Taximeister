@@ -14,4 +14,11 @@
     <string name="text_cancel">Cancel</string>
     <string name="title_activity_maps">Map</string>
     <string name="map_not_ready">El mapa no està preparat</string>
+    <string name="title_activity_menu_map">MenuMapActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Alvaro Ortega Marmol</string>
+    <string name="nav_header_subtitle">aom8@alumnes.udl.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
 </resources>
