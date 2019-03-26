@@ -1,11 +1,19 @@
 package eps.udl.cat.meistertaxi;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -19,6 +27,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +43,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -62,6 +73,7 @@ public class MenuMapActivity extends AppCompatActivity
     Location mLastLocation;
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
+    ConstraintLayout estimatedCost;
 
     public static final double PRICE_FOR_METER = 0.002;
     public static final double TAX_INITIAL = 6.57;
@@ -70,6 +82,7 @@ public class MenuMapActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu_map);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         checkLocationPermission();
 
@@ -84,15 +97,6 @@ public class MenuMapActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        /*fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -101,11 +105,24 @@ public class MenuMapActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        estimatedCost = (ConstraintLayout) findViewById(R.id.reservation_fragment);
+        estimatedCost.setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mMap != null){
+            selectStyleMap();
+        }
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        selectStyleMap();
 
         //Initialize Google Play Services
         if (ContextCompat.checkSelfPermission(this,
@@ -120,7 +137,6 @@ public class MenuMapActivity extends AppCompatActivity
 
             @Override
             public void onMapClick(LatLng point) {
-
                 // Already two locations
                 if (MarkerPoints.size() > 1) {
                     MarkerPoints.clear();
@@ -146,7 +162,6 @@ public class MenuMapActivity extends AppCompatActivity
                     options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                 }
 
-
                 // Add new marker to the Google Map Android API V2
                 mMap.addMarker(options);
 
@@ -165,6 +180,19 @@ public class MenuMapActivity extends AppCompatActivity
                 }
             }
         });
+    }
+
+    private void selectStyleMap(){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String style = sharedPreferences.getString("styleMap", "");
+        if (style.equals("0"))
+            mMap.setMapStyle(null);
+        else if (style.equals("1"))
+            mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_retro));
+        else if (style.equals("2"))
+            mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_night));
+        else
+            Log.i("result", "Resultat: " + style);
     }
 
     private String getUrl(LatLng ori, LatLng dest) {
@@ -342,6 +370,7 @@ public class MenuMapActivity extends AppCompatActivity
             // Drawing polyline in the Google Map for the i-th route
             if (lineOptions != null) {
                 mMap.addPolyline(lineOptions);
+                estimatedCost.setVisibility(View.VISIBLE);
             } else {
                 Log.d("onPostExecute", "without Polylines drawn");
             }
@@ -494,13 +523,17 @@ public class MenuMapActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
+        Intent intent = null;
         int id = item.getItemId();
 
         if (id == R.id.reservation) {
 
         } else if (id == R.id.configuration) {
-
+            intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         } else if (id == R.id.disconnect) {
+            intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
             finish();
         }
 

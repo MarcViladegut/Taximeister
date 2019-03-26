@@ -1,6 +1,8 @@
 package eps.udl.cat.meistertaxi;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +15,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         getSupportActionBar().hide();
 
         Button buttonNewUser = (Button)findViewById(R.id.buttonNewUser);
@@ -21,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(),RegisterActivity.class);
                 startActivity(i);
+                finish();
             }
         });
 
@@ -30,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(),MenuMapActivity.class);
                 startActivity(i);
+                finish();
             }
         });
     }
