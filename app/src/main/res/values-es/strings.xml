@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Meistertaxi</string>
+    <string name="text_button_login">Entrar</string>
+    <string name="hint_editText_password">Contraseña</string>
+    <string name="hint_editText_usuari">Nombre d\'usuario</string>
+    <string name="text_button_newUser">Registro</string>
+    <string name="text_name_register_activity">Nueva cuenta</string>
+    <string name="Username">Nombre d\'usuario</string>
+    <string name="textEmail">Email</string>
+    <string name="text_forgot_password">Contraseña olvidada?</string>
+    <string name="text_submit">Enviar</string>
+    <string name="text_cancel">Cancelar</string>
+    <string name="title_activity_maps">Mapa</string>
+    <string name="map_not_ready">El mapa no está listo</string>
+    <string name="title_activity_menu_map">MenuMapActivity</string>
+    <string name="nav_header_title">Alvaro Ortega Marmol</string>
+    <string name="nav_header_subtitle">aom8@alumnes.udl.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_settings">Ajustes</string>
+
+    <!-- General settings -->
+    <string name="pref_header_general">General</string>
+    <string name="pref_header_account">Cuenta</string>
+    <string name="pref_header_map">Mapa</string>
+
+    <string name="pref_default_display_name">John</string>
+    <string name="pref_default_display_surname">Smith</string>
+
+    <string name="Gender_text">Sexo</string>
+    <string-array name="Gender_list">
+        <item>Ninguno</item>
+        <item>Mujer</item>
+        <item>Hombre</item>
+    </string-array>
+    <string-array name="gender_list_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="languages_list">
+        <item>English</item>
+        <item>Català</item>
+        <item>Español</item>
+    </string-array>
+    <string-array name="languages_values">
+        <item>en</item>
+        <item>ca</item>
+        <item>es</item>
+    </string-array>
+
+    <string-array name="currency_list">
+        <item>Euros(€)</item>
+        <item>Pounds(£)</item>
+        <item>Dollar($)</item>
+    </string-array>
+    <string-array name="currency_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="style_map_list">
+        <item>Default</item>
+        <item>Retro</item>
+        <item>Night</item>
+    </string-array>
+    <string-array name="style_map_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="yes_text">Si</string>
+    <string name="no_text">No</string>
+    <string name="Language_text">Idioma</string>
+    <string name="Currency_text">Moneda</string>
+    <string name="Style_map_text">Estilo del mapa</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="taxi_driver">Taxista</string>
+    <string name="pay">Pagar</string>
+    <string name="reserve_it_now">Reserva ahora!</string>
+    <string name="distance">Distancia:</string>
+    <string name="duration">Duración:</string>
+    <string name="cost">Coste:</string>
+    <string name="your_reservations">Tus reservas</string>
+    <string name="configuration">Configuración</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="user_surname">Apellidos del usuario</string>
+    <string name="smoke_text">Fumador</string>
+    <string name="username_text">Nombre del usuario</string>
+    <string name="show_transit_text">Mostrar el tráfico</string>
+</resources>

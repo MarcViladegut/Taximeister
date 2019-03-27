@@ -2,6 +2,7 @@ package eps.udl.cat.meistertaxi;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;

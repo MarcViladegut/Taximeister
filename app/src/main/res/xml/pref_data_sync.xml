@@ -12,6 +12,6 @@
     <CheckBoxPreference
         android:defaultValue="false"
         android:key="transit"
-        android:title="Show transit" />
+        android:title="@string/show_transit_text" />
 
 </PreferenceScreen>
