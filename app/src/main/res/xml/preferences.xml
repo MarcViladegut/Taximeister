@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue="Name"
+        android:key="driver_name"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Driver's name"
+        android:capitalize="words"
+        android:inputType="textCapWords"/>
+    <EditTextPreference
+        android:defaultValue="Surname"
+        android:key="driver_surname"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Driver's surname"
+        android:capitalize="words"
+        android:inputType="textCapWords" />
+    <EditTextPreference
+        android:defaultValue="000000000"
+        android:key="driver_licence"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Licence number"
+        android:capitalize="words"
+        android:inputType="textCapWords" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="driver_smoke"
+        android:title="Smoke" />
+</PreferenceScreen>

@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.client;
 
 import android.Manifest;
 import android.content.Intent;
@@ -54,7 +54,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MenuMapActivity extends AppCompatActivity
+import eps.udl.cat.meistertaxi.MainActivity;
+import eps.udl.cat.meistertaxi.R;
+
+public class ClientMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -70,12 +73,12 @@ public class MenuMapActivity extends AppCompatActivity
     ConstraintLayout estimatedCost;
 
     public static final double PRICE_FOR_METER = 0.002;
-    public static final double TAX_INITIAL = 6.57;
+    public static final double TAX_INITIAL = 2.36;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_menu_map);
+        setContentView(R.layout.activity_client_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         checkLocationPermission();
@@ -167,7 +170,7 @@ public class MenuMapActivity extends AppCompatActivity
                     // Getting URL to the Google Directions API
                     String url = getUrl(origin, dest);
                     Log.d("onMapClick", url);
-                    MenuMapActivity.FetchUrl FetchUrl = new MenuMapActivity.FetchUrl();
+                    ClientMainActivity.FetchUrl FetchUrl = new ClientMainActivity.FetchUrl();
 
                     // Start downloading json data from Google Directions API
                     FetchUrl.execute(url);
@@ -181,6 +184,7 @@ public class MenuMapActivity extends AppCompatActivity
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String style = sharedPreferences.getString("styleMap", "");
         boolean traffic = sharedPreferences.getBoolean("transit", false);
+        TextView cost = findViewById(R.id.costValue);
 
         // Update a style map
         switch (style) {
@@ -197,6 +201,24 @@ public class MenuMapActivity extends AppCompatActivity
 
         // Update a traffic
         mMap.setTrafficEnabled(traffic);
+
+
+        // Update currency
+        double price = Double.longBitsToDouble(sharedPreferences.getLong("price", Double.doubleToLongBits(0.0)));
+        String currency = sharedPreferences
+                .getString("currency", "");
+
+        switch (currency){
+            case "1":
+                cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
+                break;
+            case "2":
+                cost.setText(String.format("%.2f", (price * 1.12)) + " dollar");
+                break;
+            default:
+                cost.setText(String.format("%.2f", price) + " euros");
+                break;
+        }
     }
 
     private String getUrl(LatLng ori, LatLng dest) {
@@ -289,7 +311,7 @@ public class MenuMapActivity extends AppCompatActivity
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            MenuMapActivity.ParserTask parserTask = new MenuMapActivity.ParserTask();
+            ClientMainActivity.ParserTask parserTask = new ClientMainActivity.ParserTask();
 
             // Execute on thread for parsing the JSON data
             parserTask.execute(result);
@@ -324,7 +346,29 @@ public class MenuMapActivity extends AppCompatActivity
                 distance.setText(parser.distance);
                 duration.setText(parser.duration);
                 price = TAX_INITIAL + PRICE_FOR_METER * parser.distValue;
-                cost.setText(String.format("%.2f", price) + " euros");
+
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor editor = PreferenceManager
+                        .getDefaultSharedPreferences(getApplicationContext())
+                        .edit();
+
+                        editor.putLong("price", Double.doubleToRawLongBits(price))
+                        .commit();
+
+                String currency = PreferenceManager
+                        .getDefaultSharedPreferences(getApplicationContext())
+                        .getString("currency", "");
+                switch (currency){
+                    case "1":
+                        cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
+                        break;
+                    case "2":
+                        cost.setText(String.format("%.2f", (price * 1.12)) + " dollar");
+                        break;
+                    default:
+                        cost.setText(String.format("%.2f", price) + " euros");
+                        break;
+                }
 
                 Log.i("Cost", Integer.toString(parser.distValue));
                 Log.d("ParserTask", "Executing routes");
@@ -472,7 +516,8 @@ public class MenuMapActivity extends AppCompatActivity
                     }
                 } else {
                     // Permission denied, Disable the functionality that depends on this permission.
-                    Snackbar.make(findViewById(android.R.id.content), "Location permission is needed for this application", Snackbar.LENGTH_INDEFINITE)
+                    Snackbar.make(findViewById(android.R.id.content),
+                            "Location permission is needed for this application", Snackbar.LENGTH_INDEFINITE)
                     .setAction("OK", new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {

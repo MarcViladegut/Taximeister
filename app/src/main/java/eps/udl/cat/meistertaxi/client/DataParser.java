@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.client;
 
 import com.google.android.gms.maps.model.LatLng;
 

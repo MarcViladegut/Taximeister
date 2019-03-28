@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Driver.DriverMainActivity"
+    android:background="@drawable/background">
+
+
+    <ImageView
+        android:id="@+id/imageDriverTaxi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.024"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.024"
+        app:srcCompat="@mipmap/ic_avatar_round" />
+
+    <TextView
+        android:id="@+id/nameTaxiDriver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Paco Flores Cantizano"
+        android:textColor="@android:color/black"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.034"
+        app:layout_constraintStart_toEndOf="@+id/imageDriverTaxi"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.020" />
+
+    <TextView
+        android:id="@+id/licenceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Licence:"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.019"
+        app:layout_constraintStart_toEndOf="@+id/imageDriverTaxi"
+        app:layout_constraintTop_toBottomOf="@+id/nameTaxiDriver"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/licenceNum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="L78248812"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/licenceText"
+        app:layout_constraintTop_toBottomOf="@+id/nameTaxiDriver"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <RatingBar
+        android:id="@+id/ratingBar"
+        style="@style/Widget.AppCompat.RatingBar.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:rating="4.5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.022"
+        app:layout_constraintStart_toEndOf="@+id/imageDriverTaxi"
+        app:layout_constraintTop_toBottomOf="@+id/licenceText"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <CalendarView
+        android:id="@+id/calendarView2"
+        android:layout_width="382dp"
+        android:layout_height="302dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="116dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorWhite"
+        android:dateTextAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+        android:showWeekNumber="false"
+        android:weekDayTextAppearance="@style/TextAppearance.AppCompat.Widget.ActionMode.Subtitle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.615"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <ListView
+        android:id="@+id/listReservation"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorWhite"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calendarView2"
+        app:layout_constraintVertical_bias="0.00">
+    </ListView>
+
+    <ImageButton
+        android:id="@+id/configButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/colorTransp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/disconnectButton"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/nameTaxiDriver"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.021"
+        app:srcCompat="@drawable/ic_settings" />
+
+    <ImageButton
+        android:id="@+id/disconnectButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.101"
+        app:srcCompat="@drawable/ic_logout" />
+
+</android.support.constraint.ConstraintLayout>

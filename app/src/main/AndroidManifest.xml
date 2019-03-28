@@ -17,11 +17,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".Driver.DriverMainActivity"/>
+        <activity android:name=".Driver.SettingsFragment"/>
         <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:name=".client.SettingsActivity"
+            android:label="@string/title_activity_settings" />
         <activity
-            android:name=".MenuMapActivity"
+            android:name=".client.ClientMainActivity"
             android:label="@string/title_activity_menu_map"
             android:theme="@style/AppTheme.NoActionBar" />
         <!--

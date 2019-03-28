@@ -1,9 +1,8 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.client;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +16,9 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import java.util.List;
+
+import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
+import eps.udl.cat.meistertaxi.R;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
