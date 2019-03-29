@@ -5,9 +5,15 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/personalizeReserve"
+            android:icon="@drawable/ic_dispatch"
+            android:title="Personalized reservation" />
+        <item
             android:id="@+id/reservation"
             android:icon="@drawable/ic_reserved"
             android:title="@string/your_reservations" />
+    </group>
+    <group android:checkableBehavior="single">
         <item
             android:id="@+id/configuration"
             android:icon="@drawable/ic_settings"
@@ -15,6 +21,6 @@
         <item
             android:id="@+id/disconnect"
             android:icon="@drawable/ic_logout"
-            android:title="@string/disconnect" />
+            android:title="@string/disconnect"/>
     </group>
-</menu>
+</menu >

@@ -7,9 +7,11 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -25,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -62,7 +65,7 @@ public class ClientMainActivity extends AppCompatActivity
         OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMapClickListener {
 
     private GoogleMap mMap;
     ArrayList<LatLng> MarkerPoints;
@@ -71,6 +74,8 @@ public class ClientMainActivity extends AppCompatActivity
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
     ConstraintLayout estimatedCost;
+
+    GoogleMap.OnMapClickListener clickListener;
 
     public static final double PRICE_FOR_METER = 0.002;
     public static final double TAX_INITIAL = 2.36;
@@ -118,8 +123,18 @@ public class ClientMainActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onMyLocationButtonClick() {
+        if (mLastLocation != null) {
+            LatLng myPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            onMapClick(myPosition);
+        }
+        return false;
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnMyLocationButtonClickListener(this);
 
         // Update a Map of the sharedPreferences
         updateMap();
@@ -130,53 +145,10 @@ public class ClientMainActivity extends AppCompatActivity
                 == PackageManager.PERMISSION_GRANTED) {
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
+
         }
-
         // Setting onclick event listener for the map
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-
-            @Override
-            public void onMapClick(LatLng point) {
-                // Already two locations
-                if (MarkerPoints.size() > 1) {
-                    MarkerPoints.clear();
-                    mMap.clear();
-                }
-
-                // Adding new item to the ArrayList
-                MarkerPoints.add(point);
-
-                // Creating MarkerOptions
-                MarkerOptions options = new MarkerOptions();
-
-                // Setting the position of the marker
-                options.position(point);
-
-                // For the start location, the color of marker is GREEN and for the end location, the color of marker is RED.
-                if (MarkerPoints.size() == 1) {
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                } else if (MarkerPoints.size() == 2) {
-                    options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                }
-
-                // Add new marker to the Google Map Android API V2
-                mMap.addMarker(options);
-
-                // Checks, whether start and end locations are captured
-                if (MarkerPoints.size() >= 2) {
-                    LatLng origin = MarkerPoints.get(0);
-                    LatLng dest = MarkerPoints.get(1);
-
-                    // Getting URL to the Google Directions API
-                    String url = getUrl(origin, dest);
-                    Log.d("onMapClick", url);
-                    ClientMainActivity.FetchUrl FetchUrl = new ClientMainActivity.FetchUrl();
-
-                    // Start downloading json data from Google Directions API
-                    FetchUrl.execute(url);
-                }
-            }
-        });
+        mMap.setOnMapClickListener(this);
     }
 
     private void updateMap() {
@@ -208,7 +180,7 @@ public class ClientMainActivity extends AppCompatActivity
         String currency = sharedPreferences
                 .getString("currency", "");
 
-        switch (currency){
+        switch (currency) {
             case "1":
                 cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
                 break;
@@ -290,6 +262,53 @@ public class ClientMainActivity extends AppCompatActivity
         return data;
     }
 
+    @Override
+    public void onMapClick(LatLng point) {
+        // Already two locations
+        if (MarkerPoints.size() > 1) {
+            MarkerPoints.clear();
+            mMap.clear();
+        }
+        // Adding new item to the ArrayList
+        MarkerPoints.add(point);
+
+        if (MarkerPoints.size()== 2 && point.toString().equals(MarkerPoints.get(0).toString())) {
+            MarkerPoints.remove(point);
+            return;
+        }
+
+        // Creating MarkerOptions
+        MarkerOptions options = new MarkerOptions();
+
+        // Setting the position of the marker
+        options.position(point);
+
+        // For the start location, the color of marker is GREEN and for the end location, the color of marker is RED.
+        if (MarkerPoints.size() == 1) {
+            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        } else if (MarkerPoints.size() == 2) {
+            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        }
+
+        // Add new marker to the Google Map Android API V2
+        mMap.addMarker(options);
+
+        // Checks, whether start and end locations are captured
+        if (MarkerPoints.size() >= 2) {
+            LatLng origin = MarkerPoints.get(0);
+            LatLng dest = MarkerPoints.get(1);
+
+            // Getting URL to the Google Directions API
+            String url = getUrl(origin, dest);
+            Log.d("onMapClick", url);
+            FetchUrl FetchUrl = new FetchUrl();
+
+            // Start downloading json data from Google Directions API
+            FetchUrl.execute(url);
+        }
+
+    }
+
     // Fetches data from url passed
     private class FetchUrl extends AsyncTask<String, Void, String> {
 
@@ -352,13 +371,13 @@ public class ClientMainActivity extends AppCompatActivity
                         .getDefaultSharedPreferences(getApplicationContext())
                         .edit();
 
-                        editor.putLong("price", Double.doubleToRawLongBits(price))
-                        .commit();
+                editor.putLong("price", Double.doubleToRawLongBits(price))
+                        .apply();
 
                 String currency = PreferenceManager
                         .getDefaultSharedPreferences(getApplicationContext())
                         .getString("currency", "");
-                switch (currency){
+                switch (currency) {
                     case "1":
                         cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
                         break;
@@ -447,7 +466,8 @@ public class ClientMainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onConnectionSuspended(int i) {}
+    public void onConnectionSuspended(int i) {
+    }
 
     @Override
     public void onLocationChanged(Location location) {
@@ -470,14 +490,17 @@ public class ClientMainActivity extends AppCompatActivity
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
 
+        //mMap.addMarker(new MarkerOptions().position(latLng)).setTitle("myLocation");
+
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {}
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+    }
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
-    private void startLocationPermissionRequest(){
+    private void startLocationPermissionRequest() {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                 MY_PERMISSIONS_REQUEST_LOCATION);
@@ -518,12 +541,12 @@ public class ClientMainActivity extends AppCompatActivity
                     // Permission denied, Disable the functionality that depends on this permission.
                     Snackbar.make(findViewById(android.R.id.content),
                             "Location permission is needed for this application", Snackbar.LENGTH_INDEFINITE)
-                    .setAction("OK", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            startLocationPermissionRequest();
-                        }
-                    }).show();
+                            .setAction("OK", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    startLocationPermissionRequest();
+                                }
+                            }).show();
                 }
             }
         }
@@ -561,7 +584,9 @@ public class ClientMainActivity extends AppCompatActivity
         Intent intent;
         int id = item.getItemId();
 
-        if (id == R.id.reservation) {
+        if (id == R.id.personalizeReserve) {
+            //intent = new Intent(this, )
+        } else if (id == R.id.reservation) {
             // TODO implements de firebase to store a reservations
         } else if (id == R.id.configuration) {
             intent = new Intent(this, SettingsActivity.class);
