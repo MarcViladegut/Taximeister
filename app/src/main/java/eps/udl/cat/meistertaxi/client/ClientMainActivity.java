@@ -1,17 +1,18 @@
 package eps.udl.cat.meistertaxi.client;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -26,6 +27,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,13 +46,23 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.paypal.android.sdk.payments.PayPalAuthorization;
+import com.paypal.android.sdk.payments.PayPalConfiguration;
+import com.paypal.android.sdk.payments.PayPalFuturePaymentActivity;
+import com.paypal.android.sdk.payments.PayPalPayment;
+import com.paypal.android.sdk.payments.PayPalProfileSharingActivity;
+import com.paypal.android.sdk.payments.PayPalService;
+import com.paypal.android.sdk.payments.PaymentActivity;
+import com.paypal.android.sdk.payments.PaymentConfirmation;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -58,6 +70,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import eps.udl.cat.meistertaxi.MainActivity;
+import eps.udl.cat.meistertaxi.Paypal;
 import eps.udl.cat.meistertaxi.R;
 
 public class ClientMainActivity extends AppCompatActivity
@@ -67,6 +80,19 @@ public class ClientMainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMapClickListener {
 
+    public static final double TAX_INITIAL = 2.36;
+
+    // Paypal
+    private static final String CONFIG_ENVIRONMENT = PayPalConfiguration.ENVIRONMENT_NO_NETWORK;
+    private static final String CONFIG_CLIENT_ID = "credentials from developer.paypal.com";
+    private static final int REQUEST_CODE_PAYMENT = 1;
+    private static PayPalConfiguration config = new PayPalConfiguration()
+            .environment(CONFIG_ENVIRONMENT)
+            .clientId(CONFIG_CLIENT_ID)
+            .merchantName("Example Merchant")
+            .merchantPrivacyPolicyUri(Uri.parse("https://www.example.com/privacy"))
+            .merchantUserAgreementUri(Uri.parse("https://www.example.com/legal"));
+
     private GoogleMap mMap;
     ArrayList<LatLng> MarkerPoints;
     GoogleApiClient mGoogleApiClient;
@@ -74,16 +100,12 @@ public class ClientMainActivity extends AppCompatActivity
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
     ConstraintLayout estimatedCost;
-
-    GoogleMap.OnMapClickListener clickListener;
-
-    public static final double PRICE_FOR_METER = 0.002;
-    public static final double TAX_INITIAL = 2.36;
+    PayPalPayment payPalPayment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_client_main);
+        setContentView(R.layout.navigation_drawer_menu);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         checkLocationPermission();
@@ -112,23 +134,39 @@ public class ClientMainActivity extends AppCompatActivity
 
         estimatedCost = findViewById(R.id.reservation_fragment);
         estimatedCost.setVisibility(View.GONE);
+
+        // Incorporate de Paypal service in App
+        Intent intent = new Intent(this, PayPalService.class);
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+        startService(intent);
+
+        Button buttonPayment = findViewById(R.id.buttonPayment);
+        buttonPayment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), PaymentActivity.class);
+
+                // send the same configuration for restart resiliency
+                intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+                intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payPalPayment);
+                startActivityForResult(intent, REQUEST_CODE_PAYMENT);
+            }
+        });
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
         if (mMap != null) {
             updateMap();
         }
+        super.onResume();
     }
 
     @Override
-    public boolean onMyLocationButtonClick() {
-        if (mLastLocation != null) {
-            LatLng myPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            onMapClick(myPosition);
-        }
-        return false;
+    public void onDestroy() {
+        // Stop the Paypal service when done
+        stopService(new Intent(this, PayPalService.class));
+        super.onDestroy();
     }
 
     @Override
@@ -147,52 +185,113 @@ public class ClientMainActivity extends AppCompatActivity
             mMap.setMyLocationEnabled(true);
 
         }
+
         // Setting onclick event listener for the map
         mMap.setOnMapClickListener(this);
     }
 
+    @SuppressLint({"SetTextI18n", "DefaultLocale"})
     private void updateMap() {
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String style = sharedPreferences.getString("styleMap", "");
         boolean traffic = sharedPreferences.getBoolean("transit", false);
+        double price = Double.longBitsToDouble(sharedPreferences
+                .getLong("price", Double.doubleToLongBits(0.0)));
+        String currency = sharedPreferences.getString("currency", "");
         TextView cost = findViewById(R.id.costValue);
 
         // Update a style map
-        switch (style) {
-            case "1":
-                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_retro));
-                break;
-            case "2":
-                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_night));
-                break;
-            default:
-                mMap.setMapStyle(null);
-                break;
+        if (style != null){
+            switch (style) {
+                case "1":
+                    mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_retro));
+                    break;
+                case "2":
+                    mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_night));
+                    break;
+                default:
+                    mMap.setMapStyle(null);
+                    break;
+            }
         }
 
         // Update a traffic
         mMap.setTrafficEnabled(traffic);
 
-
         // Update currency
-        double price = Double.longBitsToDouble(sharedPreferences.getLong("price", Double.doubleToLongBits(0.0)));
-        String currency = sharedPreferences
-                .getString("currency", "");
-
-        switch (currency) {
-            case "1":
-                cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
-                break;
-            case "2":
-                cost.setText(String.format("%.2f", (price * 1.12)) + " dollar");
-                break;
-            default:
-                cost.setText(String.format("%.2f", price) + " euros");
-                break;
+        if (currency != null){
+            switch (currency) {
+                case "1":
+                    cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
+                    break;
+                case "2":
+                    cost.setText(String.format("%.2f", (price * 1.12)) + " dollar");
+                    break;
+                default:
+                    cost.setText(String.format("%.2f", price) + " euros");
+                    break;
+            }
         }
     }
 
+    @Override
+    public boolean onMyLocationButtonClick() {
+        if (mLastLocation != null) {
+            LatLng myPosition = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            onMapClick(myPosition);
+        }
+        return false;
+    }
+
+    @Override
+    public void onMapClick(LatLng point) {
+        // Already two locations
+        if (MarkerPoints.size() > 1) {
+            MarkerPoints.clear();
+            mMap.clear();
+        }
+        // Adding new item to the ArrayList
+        MarkerPoints.add(point);
+
+        if (MarkerPoints.size()== 2 && point.toString().equals(MarkerPoints.get(0).toString())) {
+            MarkerPoints.remove(point);
+            return;
+        }
+
+        // Creating MarkerOptions
+        MarkerOptions options = new MarkerOptions();
+
+        // Setting the position of the marker
+        options.position(point);
+
+        // For the start location, the color of marker is GREEN and for the end location, the color of marker is RED.
+        if (MarkerPoints.size() == 1) {
+            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        } else if (MarkerPoints.size() == 2) {
+            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        }
+
+        // Add new marker to the Google Map Android API V2
+        mMap.addMarker(options);
+
+        // Checks, whether start and end locations are captured
+        if (MarkerPoints.size() >= 2) {
+            LatLng origin = MarkerPoints.get(0);
+            LatLng dest = MarkerPoints.get(1);
+
+            // Getting URL to the Google Directions API
+            String url = getUrl(origin, dest);
+            Log.d("onMapClick", url);
+            FetchUrl FetchUrl = new FetchUrl();
+
+            // Start downloading json data from Google Directions API
+            FetchUrl.execute(url);
+        }
+    }
+
+    /**
+     * A method to obtain a complete url for obtain a json routes
+     */
     private String getUrl(LatLng ori, LatLng dest) {
 
         // Origin of route
@@ -262,54 +361,9 @@ public class ClientMainActivity extends AppCompatActivity
         return data;
     }
 
-    @Override
-    public void onMapClick(LatLng point) {
-        // Already two locations
-        if (MarkerPoints.size() > 1) {
-            MarkerPoints.clear();
-            mMap.clear();
-        }
-        // Adding new item to the ArrayList
-        MarkerPoints.add(point);
-
-        if (MarkerPoints.size()== 2 && point.toString().equals(MarkerPoints.get(0).toString())) {
-            MarkerPoints.remove(point);
-            return;
-        }
-
-        // Creating MarkerOptions
-        MarkerOptions options = new MarkerOptions();
-
-        // Setting the position of the marker
-        options.position(point);
-
-        // For the start location, the color of marker is GREEN and for the end location, the color of marker is RED.
-        if (MarkerPoints.size() == 1) {
-            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-        } else if (MarkerPoints.size() == 2) {
-            options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        }
-
-        // Add new marker to the Google Map Android API V2
-        mMap.addMarker(options);
-
-        // Checks, whether start and end locations are captured
-        if (MarkerPoints.size() >= 2) {
-            LatLng origin = MarkerPoints.get(0);
-            LatLng dest = MarkerPoints.get(1);
-
-            // Getting URL to the Google Directions API
-            String url = getUrl(origin, dest);
-            Log.d("onMapClick", url);
-            FetchUrl FetchUrl = new FetchUrl();
-
-            // Start downloading json data from Google Directions API
-            FetchUrl.execute(url);
-        }
-
-    }
-
-    // Fetches data from url passed
+    /**
+     * Fetches data from url passed
+     */
     private class FetchUrl extends AsyncTask<String, Void, String> {
 
         @Override
@@ -338,12 +392,29 @@ public class ClientMainActivity extends AppCompatActivity
         }
     }
 
+    public double getCostService(int distance){
+        double priceKm;
+
+        // tariff 1: Under 20 km
+        if (distance <= 20000)
+            priceKm = 0.002;
+        // tariff 2: between 20 and 100 km
+        else if (distance <= 100000)
+            priceKm = 0.0015;
+        // tariff 3: More than 100 km
+        else
+            priceKm = 0.001;
+
+        return priceKm * distance + TAX_INITIAL;
+    }
+
     /**
-     * A class to parse the Google Places in JSON format
+     * A class to parse the Google Directions in JSON format
      */
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
 
         // Parsing the data in non-ui thread
+        @SuppressLint({"SetTextI18n", "DefaultLocale"})
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
 
@@ -364,7 +435,8 @@ public class ClientMainActivity extends AppCompatActivity
                 routes = parser.parse(jObject);
                 distance.setText(parser.distance);
                 duration.setText(parser.duration);
-                price = TAX_INITIAL + PRICE_FOR_METER * parser.distValue;
+
+                price = getCostService(parser.distValue);
 
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 SharedPreferences.Editor editor = PreferenceManager
@@ -377,24 +449,33 @@ public class ClientMainActivity extends AppCompatActivity
                 String currency = PreferenceManager
                         .getDefaultSharedPreferences(getApplicationContext())
                         .getString("currency", "");
-                switch (currency) {
-                    case "1":
-                        cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
-                        break;
-                    case "2":
-                        cost.setText(String.format("%.2f", (price * 1.12)) + " dollar");
-                        break;
-                    default:
-                        cost.setText(String.format("%.2f", price) + " euros");
-                        break;
-                }
 
-                Log.i("Cost", Integer.toString(parser.distValue));
-                Log.d("ParserTask", "Executing routes");
-                Log.d("ParserTask", routes.toString());
+                String currencyText = "";
+                String payPalText = "";
+
+                if (currency != null)
+                    switch (currency) {
+                        case "1":
+                            currencyText = " pounds";
+                            payPalText = "GBP";
+                            price *= 0.85;
+                            break;
+                        case "2":
+                            currencyText = " dollars";
+                            payPalText = "USD";
+                            price *= 1.12;
+                            break;
+                        default:
+                            payPalText = "EUR";
+                            currencyText = " euros";
+                            break;
+                    }
+                cost.setText(String.format("%.2f", price) + currencyText);
+
+                payPalPayment = new PayPalPayment(new BigDecimal(price), payPalText,
+                        getString(R.string.conceptPaypal), PayPalPayment.PAYMENT_INTENT_SALE);
 
             } catch (Exception e) {
-                Log.d("ParserTask", e.toString());
                 e.printStackTrace();
             }
             return routes;
@@ -481,17 +562,14 @@ public class ClientMainActivity extends AppCompatActivity
         //Place current location marker
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-        //move map camera
+        //Move map camera
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
 
-        //stop location updates
+        //Stop location updates
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
-
-        //mMap.addMarker(new MarkerOptions().position(latLng)).setTitle("myLocation");
-
     }
 
     @Override
@@ -520,8 +598,7 @@ public class ClientMainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
@@ -580,13 +657,10 @@ public class ClientMainActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
         Intent intent;
         int id = item.getItemId();
 
-        if (id == R.id.personalizeReserve) {
-            //intent = new Intent(this, )
-        } else if (id == R.id.reservation) {
+        if (id == R.id.reservation) {
             // TODO implements de firebase to store a reservations
         } else if (id == R.id.configuration) {
             intent = new Intent(this, SettingsActivity.class);

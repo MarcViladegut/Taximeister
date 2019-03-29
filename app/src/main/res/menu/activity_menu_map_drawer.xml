@@ -5,10 +5,6 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/personalizeReserve"
-            android:icon="@drawable/ic_dispatch"
-            android:title="Personalized reservation" />
-        <item
             android:id="@+id/reservation"
             android:icon="@drawable/ic_reserved"
             android:title="@string/your_reservations" />

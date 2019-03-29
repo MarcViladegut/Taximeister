@@ -192,7 +192,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_notification);
+            addPreferencesFromResource(R.xml.pref_account);
             setHasOptionsMenu(true);
 
             bindPreferenceSummaryToValue(findPreference("username"));
@@ -221,7 +221,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_data_sync);
+            addPreferencesFromResource(R.xml.pref_map);
             setHasOptionsMenu(true);
 
             bindPreferenceSummaryToValue(findPreference("styleMap"));

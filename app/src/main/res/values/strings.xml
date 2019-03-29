@@ -96,4 +96,5 @@
     <string name="smoke_text">Smoke</string>
     <string name="username_text">User name</string>
     <string name="show_transit_text">Show transit</string>
+    <string name="conceptPaypal">Reservation in Meistertaxi</string>
 </resources>

@@ -92,4 +92,5 @@
     <string name="smoke_text">Fumador</string>
     <string name="username_text">Nom de l\'usuari</string>
     <string name="show_transit_text">Mostrar el trànsit</string>
+    <string name="conceptPaypal">Reservation in Meistertaxi</string>
 </resources>

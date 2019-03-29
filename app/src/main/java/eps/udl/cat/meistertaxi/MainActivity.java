@@ -1,6 +1,5 @@
 package eps.udl.cat.meistertaxi;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -13,8 +12,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 import eps.udl.cat.meistertaxi.Driver.DriverMainActivity;
 import eps.udl.cat.meistertaxi.client.ClientMainActivity;
@@ -64,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MainActivity.this);
-                View mView = layoutInflaterAndroid.inflate(R.layout.user_input_dialog_box, null);
+                View mView = layoutInflaterAndroid.inflate(R.layout.input_dialog_forgot_password, null);
                 AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(MainActivity.this);
                 alertDialogBuilderUserInput.setView(mView);
 
