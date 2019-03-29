@@ -3,13 +3,14 @@ package eps.udl.cat.meistertaxi.client;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -27,7 +28,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,11 +46,8 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.paypal.android.sdk.payments.PayPalAuthorization;
 import com.paypal.android.sdk.payments.PayPalConfiguration;
-import com.paypal.android.sdk.payments.PayPalFuturePaymentActivity;
 import com.paypal.android.sdk.payments.PayPalPayment;
-import com.paypal.android.sdk.payments.PayPalProfileSharingActivity;
 import com.paypal.android.sdk.payments.PayPalService;
 import com.paypal.android.sdk.payments.PaymentActivity;
 import com.paypal.android.sdk.payments.PaymentConfirmation;
@@ -70,7 +67,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import eps.udl.cat.meistertaxi.MainActivity;
-import eps.udl.cat.meistertaxi.Paypal;
 import eps.udl.cat.meistertaxi.R;
 
 public class ClientMainActivity extends AppCompatActivity
@@ -80,18 +76,19 @@ public class ClientMainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMapClickListener {
 
-    public static final double TAX_INITIAL = 2.36;
+    ClientMainActivity.ParserTask parserTask;
 
-    // Paypal
-    private static final String CONFIG_ENVIRONMENT = PayPalConfiguration.ENVIRONMENT_NO_NETWORK;
-    private static final String CONFIG_CLIENT_ID = "credentials from developer.paypal.com";
-    private static final int REQUEST_CODE_PAYMENT = 1;
+
+    //PAYPAL
     private static PayPalConfiguration config = new PayPalConfiguration()
-            .environment(CONFIG_ENVIRONMENT)
-            .clientId(CONFIG_CLIENT_ID)
-            .merchantName("Example Merchant")
-            .merchantPrivacyPolicyUri(Uri.parse("https://www.example.com/privacy"))
-            .merchantUserAgreementUri(Uri.parse("https://www.example.com/legal"));
+
+            // Start with mock environment.  When ready, switch to sandbox (ENVIRONMENT_SANDBOX)
+            // or live (ENVIRONMENT_PRODUCTION)
+            .environment(PayPalConfiguration.ENVIRONMENT_NO_NETWORK)
+            .clientId("ASOBY-QQvBf_kxLtW8pzZo0e7Giaj34a5ECUYzo8WBitAGQoo1HT0YBfDCYU2xe6TxBtUQj5qFRHXm7v");
+
+
+    public static final double TAX_INITIAL = 2.36;
 
     private GoogleMap mMap;
     ArrayList<LatLng> MarkerPoints;
@@ -100,7 +97,6 @@ public class ClientMainActivity extends AppCompatActivity
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
     ConstraintLayout estimatedCost;
-    PayPalPayment payPalPayment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,6 +112,7 @@ public class ClientMainActivity extends AppCompatActivity
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -135,23 +132,12 @@ public class ClientMainActivity extends AppCompatActivity
         estimatedCost = findViewById(R.id.reservation_fragment);
         estimatedCost.setVisibility(View.GONE);
 
-        // Incorporate de Paypal service in App
         Intent intent = new Intent(this, PayPalService.class);
+
         intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+
         startService(intent);
 
-        Button buttonPayment = findViewById(R.id.buttonPayment);
-        buttonPayment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), PaymentActivity.class);
-
-                // send the same configuration for restart resiliency
-                intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
-                intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payPalPayment);
-                startActivityForResult(intent, REQUEST_CODE_PAYMENT);
-            }
-        });
     }
 
     @Override
@@ -164,7 +150,6 @@ public class ClientMainActivity extends AppCompatActivity
 
     @Override
     public void onDestroy() {
-        // Stop the Paypal service when done
         stopService(new Intent(this, PayPalService.class));
         super.onDestroy();
     }
@@ -201,7 +186,7 @@ public class ClientMainActivity extends AppCompatActivity
         TextView cost = findViewById(R.id.costValue);
 
         // Update a style map
-        if (style != null){
+        if (style != null) {
             switch (style) {
                 case "1":
                     mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_retro));
@@ -219,7 +204,7 @@ public class ClientMainActivity extends AppCompatActivity
         mMap.setTrafficEnabled(traffic);
 
         // Update currency
-        if (currency != null){
+        if (currency != null) {
             switch (currency) {
                 case "1":
                     cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
@@ -253,7 +238,7 @@ public class ClientMainActivity extends AppCompatActivity
         // Adding new item to the ArrayList
         MarkerPoints.add(point);
 
-        if (MarkerPoints.size()== 2 && point.toString().equals(MarkerPoints.get(0).toString())) {
+        if (MarkerPoints.size() == 2 && point.toString().equals(MarkerPoints.get(0).toString())) {
             MarkerPoints.remove(point);
             return;
         }
@@ -383,25 +368,23 @@ public class ClientMainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-
-            ClientMainActivity.ParserTask parserTask = new ClientMainActivity.ParserTask();
-
+            parserTask = new ClientMainActivity.ParserTask();
             // Execute on thread for parsing the JSON data
             parserTask.execute(result);
 
         }
     }
 
-    public double getCostService(int distance){
+    public double getCostService(int distance) {
         double priceKm;
 
         // tariff 1: Under 20 km
         if (distance <= 20000)
             priceKm = 0.002;
-        // tariff 2: between 20 and 100 km
+            // tariff 2: between 20 and 100 km
         else if (distance <= 100000)
             priceKm = 0.0015;
-        // tariff 3: More than 100 km
+            // tariff 3: More than 100 km
         else
             priceKm = 0.001;
 
@@ -412,6 +395,11 @@ public class ClientMainActivity extends AppCompatActivity
      * A class to parse the Google Directions in JSON format
      */
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+        public double getPrice() {
+            return price;
+        }
+
+        double price;
 
         // Parsing the data in non-ui thread
         @SuppressLint({"SetTextI18n", "DefaultLocale"})
@@ -423,8 +411,6 @@ public class ClientMainActivity extends AppCompatActivity
             TextView distance = findViewById(R.id.distanceValue);
             TextView duration = findViewById(R.id.durationValue);
             TextView cost = findViewById(R.id.costValue);
-            double price;
-
             try {
                 jObject = new JSONObject(jsonData[0]);
                 Log.d("ParserTask", jsonData[0]);
@@ -471,9 +457,6 @@ public class ClientMainActivity extends AppCompatActivity
                             break;
                     }
                 cost.setText(String.format("%.2f", price) + currencyText);
-
-                payPalPayment = new PayPalPayment(new BigDecimal(price), payPalText,
-                        getString(R.string.conceptPaypal), PayPalPayment.PAYMENT_INTENT_SALE);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -674,5 +657,81 @@ public class ClientMainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    public void onBuyPressed(View pressed) {
+
+        String currency = PreferenceManager
+                .getDefaultSharedPreferences(getApplicationContext())
+                .getString("currency", "");
+        String payPalText = "";
+
+        if (currency != null)
+            switch (currency) {
+                case "1":
+                    payPalText = "GBP";
+                    break;
+                case "2":
+                    payPalText = "USD";
+                    break;
+                default:
+                    payPalText = "EUR";
+                    break;
+            }
+
+        PayPalPayment payment = new PayPalPayment(new BigDecimal(Double.toString(parserTask.getPrice())), payPalText, "MisterTaxi",
+                PayPalPayment.PAYMENT_INTENT_SALE);
+
+        Intent intent = new Intent(this, PaymentActivity.class);
+
+        // send the same configuration for restart resiliency
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+
+        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payment);
+
+        startActivityForResult(intent, 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
+            if (confirm != null) {
+                try {
+                    showAlert("Compra PayPal","La seva compra per PayPal s'ha efectuat correctament.\nEs una versió de prova no s'efectuarà cap carrec a la seva tarjeta");
+                    estimatedCost.setVisibility(View.GONE);
+                    MarkerPoints.clear();
+                    mMap.clear();
+                    Log.i("paymentExample", confirm.toJSONObject().toString(4));
+
+                    // TODO: send 'confirm' to your server for verification.
+                    // see https://developer.paypal.com/webapps/developer/docs/integration/mobile/verify-mobile-payment/
+                    // for more details.
+
+                } catch (JSONException e) {
+                    Log.e("paymentExample", "an extremely unlikely failure occurred: ", e);
+                }
+            }
+        } else if (resultCode == Activity.RESULT_CANCELED) {
+            Toast.makeText(this, "The user canceled", Toast.LENGTH_LONG).show();
+            Log.i("paymentExample", "The user canceled.");
+        } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
+            Toast.makeText(this, "An invalid Payment or PayPalConfiguration was submitted. Please see the docs", Toast.LENGTH_LONG).show();
+            Log.i("paymentExample", "An invalid Payment or PayPalConfiguration was submitted. Please see the docs.");
+        }
+    }
+
+    private void showAlert(String tittle, String message){
+        new AlertDialog.Builder(this)
+                .setTitle(tittle)
+                .setMessage(message)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).show();
+
     }
 }
