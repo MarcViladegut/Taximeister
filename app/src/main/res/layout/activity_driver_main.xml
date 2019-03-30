@@ -22,7 +22,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.024"
-        app:srcCompat="@mipmap/ic_avatar_round" />
+        app:srcCompat="@mipmap/ic_avatar_round"
+        android:contentDescription="@string/avatar_taxi_driver" />
 
     <TextView
         android:id="@+id/nameTaxiDriver"
@@ -32,9 +33,9 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="Paco Flores Cantizano"
+        android:text="@string/name_driver_default"
         android:textColor="@android:color/black"
-        android:textSize="16dp"
+        android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -51,7 +52,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="Licence:"
+        android:text="@string/licence_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.019"
@@ -67,7 +68,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="L78248812"
+        android:text="@string/licence_default_value"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -141,7 +142,8 @@
         app:layout_constraintStart_toEndOf="@+id/nameTaxiDriver"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.021"
-        app:srcCompat="@drawable/ic_settings" />
+        app:srcCompat="@drawable/ic_settings"
+        android:contentDescription="@string/configuration_button" />
 
     <ImageButton
         android:id="@+id/disconnectButton"
@@ -155,6 +157,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.101"
-        app:srcCompat="@drawable/ic_logout" />
+        app:srcCompat="@drawable/ic_logout"
+        android:contentDescription="@string/disconnect_button" />
 
 </android.support.constraint.ConstraintLayout>

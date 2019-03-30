@@ -104,7 +104,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0"
-        tools:srcCompat="@drawable/logo_app_main" />
+        tools:srcCompat="@drawable/logo_app_main"
+        android:contentDescription="@string/the_app_logo" />
 
     <TextView
         android:id="@+id/textForgotPassword"

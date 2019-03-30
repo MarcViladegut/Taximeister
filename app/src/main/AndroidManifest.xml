@@ -12,13 +12,13 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_taxi"
+        android:icon="@mipmap/ic_app_taxi"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_taxi_round"
+        android:roundIcon="@mipmap/ic_app_taxi_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".client.CustomizeReservationActivity"></activity>
+        <activity android:name=".client.CustomizeReservationActivity"/>
         <activity android:name=".Driver.DriverMainActivity" />
         <activity android:name=".Driver.SettingsFragment" />
         <activity

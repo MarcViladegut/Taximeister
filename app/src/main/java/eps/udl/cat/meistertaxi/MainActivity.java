@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        TextView textView = (TextView) findViewById(R.id.textForgotPassword);
+        TextView textView = findViewById(R.id.textForgotPassword);
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -65,18 +65,17 @@ public class MainActivity extends AppCompatActivity {
                 AlertDialog.Builder alertDialogBuilderUserInput = new AlertDialog.Builder(MainActivity.this);
                 alertDialogBuilderUserInput.setView(mView);
 
-                final EditText userInputDialogEditText = (EditText) mView.findViewById(R.id.userInputDialog);
                 alertDialogBuilderUserInput
                         .setCancelable(false)
-                        .setPositiveButton("Send", new DialogInterface.OnClickListener() {
+                        .setPositiveButton(R.string.send_text, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialogBox, int id) {
                                 Toast.makeText(MainActivity.this,
-                                        "Mail has been sent to the email address",
+                                        getString(R.string.forgot_pass_text),
                                         Toast.LENGTH_LONG).show();
                             }
                         })
 
-                        .setNegativeButton("Cancel",
+                        .setNegativeButton(R.string.text_cancel,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialogBox, int id) {
                                         dialogBox.cancel();

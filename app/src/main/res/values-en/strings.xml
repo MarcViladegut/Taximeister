@@ -78,8 +78,6 @@
     <string name="Language_text">Language</string>
     <string name="Currency_text">Currency</string>
     <string name="Style_map_text">Map style</string>
-    <string name="navigation_drawer_open" translatable="false">Open navigation</string>
-    <string name="navigation_drawer_close" translatable="false">Close navigation</string>
     <string name="confirm_password">Confirm password</string>
     <string name="taxi_driver">Taxi driver</string>
     <string name="pay">Pay</string>
@@ -87,9 +85,6 @@
     <string name="distance">Distance:</string>
     <string name="duration">Duration:</string>
     <string name="cost">Cost:</string>
-    <string name="_0_km" translatable="false">0 km</string>
-    <string name="_0_mins" translatable="false">0 mins</string>
-    <string name="_0_euros" translatable="false">0 euros</string>
     <string name="your_reservations">Your reservations</string>
     <string name="configuration">Configuration</string>
     <string name="disconnect">Disconnect</string>
@@ -99,4 +94,29 @@
     <string name="show_transit_text">Show transit</string>
     <string name="conceptPaypal">Reservation in Meistertaxi</string>
     <string name="customize">Customize</string>
+    <string name="accept">Accept</string>
+    <string name="customize_reservation">Customize reservation</string>
+    <string name="reservation_n">Reservation nº</string>
+    <string name="starting_point">Starting point:</string>
+    <string name="destination_point">Destination point:</string>
+    <string name="date_points">Date:</string>
+    <string name="time_points">Hour:</string>
+    <string name="customize_date">Customize date</string>
+    <string name="customize_hour">Customize hour</string>
+    <string name="you_can_modify_this_parameters">You can modify this parameters:</string>
+    <string name="avatar_taxi_driver">Avatar taxi driver</string>
+    <string name="licence_text">Licence:</string>
+    <string name="configuration_button">Configuration button</string>
+    <string name="disconnect_button">Disconnect button</string>
+    <string name="the_app_logo">The app logo</string>
+    <string name="enter_mail_to_retrieve_your_password">Enter mail to retrieve your password:</string>
+    <string name="enter_email">Enter email</string>
+    <string name="text_permission">Location permission is needed for this application</string>
+    <string name="reserve_successful">Reservation made</string>
+    <string name="reserve_successful_msg">Your reservation for PayPal has been made correctly. We hope you continue trusting with us.</string>
+    <string name="date_error">The date would be more or equals than actual date</string>
+    <string name="time_error">The time would be more or equals than actual time</string>
+    <string name="send_text">Send</string>
+    <string name="forgot_pass_text">Mail has been sent to the email address</string>
+    <string name="account_created_text">Account has been created</string>
 </resources>

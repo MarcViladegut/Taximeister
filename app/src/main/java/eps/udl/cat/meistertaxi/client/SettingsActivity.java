@@ -163,7 +163,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             addPreferencesFromResource(R.xml.pref_general);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference("language"));
             bindPreferenceSummaryToValue(findPreference("currency"));
         }
 

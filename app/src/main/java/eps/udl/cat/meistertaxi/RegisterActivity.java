@@ -35,7 +35,7 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 /* TODO Put de conditions to success the register */
-                Toast.makeText(getApplicationContext(), "Account has been created", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.account_created_text), Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
                 finish();

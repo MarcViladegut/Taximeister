@@ -2,8 +2,6 @@ package eps.udl.cat.meistertaxi;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import org.joda.time.DateTime;
-
 import java.io.Serializable;
 import java.util.Calendar;
 

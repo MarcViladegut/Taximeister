@@ -53,7 +53,6 @@ import com.paypal.android.sdk.payments.PayPalService;
 import com.paypal.android.sdk.payments.PaymentActivity;
 import com.paypal.android.sdk.payments.PaymentConfirmation;
 
-import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -81,10 +80,10 @@ public class ClientMainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMapClickListener {
 
-    //PAYPAL
+    // PayPal
     private static PayPalConfiguration config = new PayPalConfiguration()
             .environment(PayPalConfiguration.ENVIRONMENT_NO_NETWORK)
-            .clientId("ASOBY-QQvBf_kxLtW8pzZo0e7Giaj34a5ECUYzo8WBitAGQoo1HT0YBfDCYU2xe6TxBtUQj5qFRHXm7v");
+            .clientId(Integer.toString(R.string.client_id_paypal));
 
     private GoogleMap mMap;
     ArrayList<LatLng> MarkerPoints;
@@ -127,7 +126,7 @@ public class ClientMainActivity extends AppCompatActivity
         estimatedCost = findViewById(R.id.reservation_fragment);
         estimatedCost.setVisibility(View.GONE);
 
-        // Initialize a Paypal Services
+        // Initialize a PayPal Services
         Intent intent = new Intent(this, PayPalService.class);
         intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
         startService(intent);
@@ -405,21 +404,16 @@ public class ClientMainActivity extends AppCompatActivity
                         .getDefaultSharedPreferences(getApplicationContext())
                         .getString("currency", "");
 
-                String currencyText;
-
                 if (currency != null)
                     switch (currency) {
                         case "1":
-                            currencyText = " pounds";
-                            cost.setText(String.format("%.2f", reservation.getCostToPounds()) + currencyText);
+                            cost.setText(String.format("%.2f", reservation.getCostToPounds()) + " pounds");
                             break;
                         case "2":
-                            currencyText = " dollars";
-                            cost.setText(String.format("%.2f", reservation.getCostToDollars()) + currencyText);
+                            cost.setText(String.format("%.2f", reservation.getCostToDollars()) + " dollars");
                             break;
                         default:
-                            currencyText = " euros";
-                            cost.setText(String.format("%.2f", reservation.getCost()) + currencyText);
+                            cost.setText(String.format("%.2f", reservation.getCost()) + " euros");
                             break;
                     }
             } catch (Exception e) {
@@ -564,7 +558,7 @@ public class ClientMainActivity extends AppCompatActivity
                 } else {
                     // Permission denied, Disable the functionality that depends on this permission.
                     Snackbar.make(findViewById(android.R.id.content),
-                            "Location permission is needed for this application", Snackbar.LENGTH_INDEFINITE)
+                            R.string.text_permission, Snackbar.LENGTH_INDEFINITE)
                             .setAction("OK", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -683,7 +677,7 @@ public class ClientMainActivity extends AppCompatActivity
                 if (confirm != null) {
                     try {
                         reservation.setPaid(true);
-                        showAlert("Reserva efectuada", "La seva reserva per PayPal s'ha efectuat correctament.\nEsperem que segueixi confiant amb nosaltres.");
+                        showAlert(getString(R.string.reserve_successful), getString(R.string.reserve_successful_msg));
                         estimatedCost.setVisibility(View.GONE);
                         MarkerPoints.clear();
                         mMap.clear();

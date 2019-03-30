@@ -10,7 +10,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -35,6 +34,7 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
     public static final String BAR = "/";
 
     public final Calendar calendar = Calendar.getInstance();
+    Calendar tmp = Calendar.getInstance();
 
     ImageButton obtainDate, obtainHour;
     TextView tvDate, tvHour;
@@ -125,7 +125,6 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
             @SuppressLint("SetTextI18n")
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                Calendar tmp = Calendar.getInstance();
                 final int actualMonth = month + 1;
 
                 String dayUpdate = (dayOfMonth < 10) ? ZERO + String.valueOf(dayOfMonth) : String.valueOf(dayOfMonth);
@@ -141,7 +140,7 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
                     intentResult.putExtra("month", month);
                     intentResult.putExtra("day", dayOfMonth);
                 } else
-                    Toast.makeText(getApplicationContext(), "The date would be more or equals than actual date", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.date_error), Toast.LENGTH_LONG).show();
             }
         }, year, month, day);
         date.show();
@@ -152,7 +151,6 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
             @SuppressLint("SetTextI18n")
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                Calendar tmp = Calendar.getInstance();
                 String hourUpdate = (hourOfDay < 10) ? String.valueOf(ZERO + hourOfDay) : String.valueOf(hourOfDay);
                 String minuteUpdate = (minute < 10) ? String.valueOf(ZERO + minute) : String.valueOf(minute);
 
@@ -164,7 +162,7 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
                     intentResult.putExtra("hour", hourOfDay);
                     intentResult.putExtra("minute", minute);
                 } else
-                    Toast.makeText(getApplicationContext(), "The time would be more or equals than actual time", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.time_error), Toast.LENGTH_LONG).show();
             }
         }, hour, minute, false);
 
