@@ -8,7 +8,7 @@
          location permissions for the 'MyLocation' functionality.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -18,8 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Driver.DriverMainActivity"/>
-        <activity android:name=".Driver.SettingsFragment"/>
+        <activity android:name=".client.CustomizeReservationActivity"></activity>
+        <activity android:name=".Driver.DriverMainActivity" />
+        <activity android:name=".Driver.SettingsFragment" />
         <activity
             android:name=".client.SettingsActivity"
             android:label="@string/title_activity_settings" />

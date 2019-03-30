@@ -93,4 +93,5 @@
     <string name="username_text">Nombre del usuario</string>
     <string name="show_transit_text">Mostrar el tráfico</string>
     <string name="conceptPaypal">Reservation in Meistertaxi</string>
+    <string name="customize">Customize</string>
 </resources>

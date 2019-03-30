@@ -15,6 +15,22 @@
         android:layout_weight="3.5">
 
         <Button
+            android:id="@+id/buttonCustomize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/colorGray"
+            android:text="@string/customize"
+            android:textColor="@color/colorWhite"
+            android:onClick="onCustimizePressed"
+            app:layout_constraintBottom_toTopOf="@+id/buttonPayment"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.804" />
+
+        <Button
             android:id="@+id/buttonPayment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -22,11 +38,12 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             android:background="@color/colorOrange"
-            android:text="@string/pay"
             android:onClick="onBuyPressed"
+            android:text="@string/pay"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.989" />
 
         <TextView
             android:id="@+id/titleReserveText"

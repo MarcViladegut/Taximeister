@@ -14,6 +14,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -52,6 +53,7 @@ import com.paypal.android.sdk.payments.PayPalService;
 import com.paypal.android.sdk.payments.PaymentActivity;
 import com.paypal.android.sdk.payments.PaymentConfirmation;
 
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -63,11 +65,14 @@ import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import eps.udl.cat.meistertaxi.MainActivity;
 import eps.udl.cat.meistertaxi.R;
+import eps.udl.cat.meistertaxi.Reservation;
 
 public class ClientMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -76,19 +81,10 @@ public class ClientMainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMapClickListener {
 
-    ClientMainActivity.ParserTask parserTask;
-
-
     //PAYPAL
     private static PayPalConfiguration config = new PayPalConfiguration()
-
-            // Start with mock environment.  When ready, switch to sandbox (ENVIRONMENT_SANDBOX)
-            // or live (ENVIRONMENT_PRODUCTION)
             .environment(PayPalConfiguration.ENVIRONMENT_NO_NETWORK)
             .clientId("ASOBY-QQvBf_kxLtW8pzZo0e7Giaj34a5ECUYzo8WBitAGQoo1HT0YBfDCYU2xe6TxBtUQj5qFRHXm7v");
-
-
-    public static final double TAX_INITIAL = 2.36;
 
     private GoogleMap mMap;
     ArrayList<LatLng> MarkerPoints;
@@ -97,6 +93,8 @@ public class ClientMainActivity extends AppCompatActivity
     Marker mCurrLocationMarker;
     LocationRequest mLocationRequest;
     ConstraintLayout estimatedCost;
+    Reservation reservation;
+    ClientMainActivity.ParserTask parserTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +104,6 @@ public class ClientMainActivity extends AppCompatActivity
 
         checkLocationPermission();
 
-        // Initializing
         MarkerPoints = new ArrayList<>();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -118,7 +115,6 @@ public class ClientMainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -128,16 +124,16 @@ public class ClientMainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
         estimatedCost = findViewById(R.id.reservation_fragment);
         estimatedCost.setVisibility(View.GONE);
 
+        // Initialize a Paypal Services
         Intent intent = new Intent(this, PayPalService.class);
-
         intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
-
         startService(intent);
 
+        // Initialize and assign a unique id
+        reservation = new Reservation();
     }
 
     @Override
@@ -178,10 +174,8 @@ public class ClientMainActivity extends AppCompatActivity
     @SuppressLint({"SetTextI18n", "DefaultLocale"})
     private void updateMap() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String style = sharedPreferences.getString("styleMap", "");
         boolean traffic = sharedPreferences.getBoolean("transit", false);
-        double price = Double.longBitsToDouble(sharedPreferences
-                .getLong("price", Double.doubleToLongBits(0.0)));
+        String style = sharedPreferences.getString("styleMap", "");
         String currency = sharedPreferences.getString("currency", "");
         TextView cost = findViewById(R.id.costValue);
 
@@ -207,13 +201,13 @@ public class ClientMainActivity extends AppCompatActivity
         if (currency != null) {
             switch (currency) {
                 case "1":
-                    cost.setText(String.format("%.2f", (price * 0.85)) + " pounds");
+                    cost.setText(String.format("%.2f", reservation.getCostToPounds()) + " pounds");
                     break;
                 case "2":
-                    cost.setText(String.format("%.2f", (price * 1.12)) + " dollar");
+                    cost.setText(String.format("%.2f", reservation.getCostToDollars()) + " dollar");
                     break;
                 default:
-                    cost.setText(String.format("%.2f", price) + " euros");
+                    cost.setText(String.format("%.2f", reservation.getCost()) + " euros");
                     break;
             }
         }
@@ -261,11 +255,11 @@ public class ClientMainActivity extends AppCompatActivity
 
         // Checks, whether start and end locations are captured
         if (MarkerPoints.size() >= 2) {
-            LatLng origin = MarkerPoints.get(0);
-            LatLng dest = MarkerPoints.get(1);
+            reservation.setStartingPoint(MarkerPoints.get(0));
+            reservation.setDestinationPoint(MarkerPoints.get(1));
 
             // Getting URL to the Google Directions API
-            String url = getUrl(origin, dest);
+            String url = getUrl(reservation.getStartingPoint(), reservation.getDestinationPoint());
             Log.d("onMapClick", url);
             FetchUrl FetchUrl = new FetchUrl();
 
@@ -349,6 +343,7 @@ public class ClientMainActivity extends AppCompatActivity
     /**
      * Fetches data from url passed
      */
+    @SuppressLint("StaticFieldLeak")
     private class FetchUrl extends AsyncTask<String, Void, String> {
 
         @Override
@@ -375,31 +370,11 @@ public class ClientMainActivity extends AppCompatActivity
         }
     }
 
-    public double getCostService(int distance) {
-        double priceKm;
-
-        // tariff 1: Under 20 km
-        if (distance <= 20000)
-            priceKm = 0.002;
-            // tariff 2: between 20 and 100 km
-        else if (distance <= 100000)
-            priceKm = 0.0015;
-            // tariff 3: More than 100 km
-        else
-            priceKm = 0.001;
-
-        return priceKm * distance + TAX_INITIAL;
-    }
-
     /**
      * A class to parse the Google Directions in JSON format
      */
+    @SuppressLint("StaticFieldLeak")
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
-        public double getPrice() {
-            return price;
-        }
-
-        double price;
 
         // Parsing the data in non-ui thread
         @SuppressLint({"SetTextI18n", "DefaultLocale"})
@@ -419,45 +394,34 @@ public class ClientMainActivity extends AppCompatActivity
 
                 // Starts parsing data
                 routes = parser.parse(jObject);
+
+                reservation.setDistance(parser.distValue);
+                reservation.setDuration(parser.duration);
+
                 distance.setText(parser.distance);
-                duration.setText(parser.duration);
-
-                price = getCostService(parser.distValue);
-
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                SharedPreferences.Editor editor = PreferenceManager
-                        .getDefaultSharedPreferences(getApplicationContext())
-                        .edit();
-
-                editor.putLong("price", Double.doubleToRawLongBits(price))
-                        .apply();
+                duration.setText(reservation.getDuration());
 
                 String currency = PreferenceManager
                         .getDefaultSharedPreferences(getApplicationContext())
                         .getString("currency", "");
 
-                String currencyText = "";
-                String payPalText = "";
+                String currencyText;
 
                 if (currency != null)
                     switch (currency) {
                         case "1":
                             currencyText = " pounds";
-                            payPalText = "GBP";
-                            price *= 0.85;
+                            cost.setText(String.format("%.2f", reservation.getCostToPounds()) + currencyText);
                             break;
                         case "2":
                             currencyText = " dollars";
-                            payPalText = "USD";
-                            price *= 1.12;
+                            cost.setText(String.format("%.2f", reservation.getCostToDollars()) + currencyText);
                             break;
                         default:
-                            payPalText = "EUR";
                             currencyText = " euros";
+                            cost.setText(String.format("%.2f", reservation.getCost()) + currencyText);
                             break;
                     }
-                cost.setText(String.format("%.2f", price) + currencyText);
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -480,8 +444,8 @@ public class ClientMainActivity extends AppCompatActivity
                 for (int j = 0; j < path.size(); j++) {
                     HashMap<String, String> point = path.get(j);
 
-                    LatLng position = new LatLng(Double.parseDouble(point.get("lat")),
-                            Double.parseDouble(point.get("lng")));
+                    LatLng position = new LatLng(Double.parseDouble(Objects.requireNonNull(point.get("lat"))),
+                            Double.parseDouble(Objects.requireNonNull(point.get("lng"))));
 
                     points.add(position);
                 }
@@ -556,7 +520,7 @@ public class ClientMainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
     }
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
@@ -581,7 +545,7 @@ public class ClientMainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
@@ -639,12 +603,13 @@ public class ClientMainActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Intent intent;
         int id = item.getItemId();
 
         if (id == R.id.reservation) {
             // TODO implements de firebase to store a reservations
+            Toast.makeText(this, "This button will implement very soon", Toast.LENGTH_LONG).show();
         } else if (id == R.id.configuration) {
             intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
@@ -666,13 +631,16 @@ public class ClientMainActivity extends AppCompatActivity
                 .getDefaultSharedPreferences(getApplicationContext())
                 .getString("currency", "");
         String payPalText = "";
+        double cost = reservation.getCost();
 
         if (currency != null)
             switch (currency) {
                 case "1":
+                    cost = reservation.getCostToPounds();
                     payPalText = "GBP";
                     break;
                 case "2":
+                    cost = reservation.getCostToDollars();
                     payPalText = "USD";
                     break;
                 default:
@@ -680,8 +648,8 @@ public class ClientMainActivity extends AppCompatActivity
                     break;
             }
 
-        PayPalPayment payment = new PayPalPayment(new BigDecimal(Double.toString(parserTask.getPrice())), payPalText, "MisterTaxi",
-                PayPalPayment.PAYMENT_INTENT_SALE);
+        PayPalPayment payment = new PayPalPayment(new BigDecimal(Double.toString(cost)),
+                payPalText, "MisterTaxi", PayPalPayment.PAYMENT_INTENT_SALE);
 
         Intent intent = new Intent(this, PaymentActivity.class);
 
@@ -693,38 +661,64 @@ public class ClientMainActivity extends AppCompatActivity
         startActivityForResult(intent, 0);
     }
 
+    public void onCustimizePressed(View pressed) {
+        Intent intent = new Intent(this, CustomizeReservationActivity.class);
+        Bundle bundle = new Bundle();
+
+        intent.putExtra("reservationId", reservation.getIdReservation());
+
+        bundle.putParcelable("reservationFrom", reservation.getStartingPoint());
+        bundle.putParcelable("reservationTo", reservation.getDestinationPoint());
+
+        intent.putExtra("bundleFromTo", bundle);
+
+        startActivityForResult(intent, 1);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK) {
-            PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
-            if (confirm != null) {
-                try {
-                    showAlert("Compra PayPal","La seva compra per PayPal s'ha efectuat correctament.\nEs una versió de prova no s'efectuarà cap carrec a la seva tarjeta");
-                    estimatedCost.setVisibility(View.GONE);
-                    MarkerPoints.clear();
-                    mMap.clear();
-                    Log.i("paymentExample", confirm.toJSONObject().toString(4));
+        if (requestCode == 0) {
+            if (resultCode == Activity.RESULT_OK) {
+                PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
+                if (confirm != null) {
+                    try {
+                        reservation.setPaid(true);
+                        showAlert("Reserva efectuada", "La seva reserva per PayPal s'ha efectuat correctament.\nEsperem que segueixi confiant amb nosaltres.");
+                        estimatedCost.setVisibility(View.GONE);
+                        MarkerPoints.clear();
+                        mMap.clear();
+                        Log.i("paymentExample", confirm.toJSONObject().toString(4));
 
-                    // TODO: send 'confirm' to your server for verification.
-                    // see https://developer.paypal.com/webapps/developer/docs/integration/mobile/verify-mobile-payment/
-                    // for more details.
+                        // TODO: save the reservation to the firebase
 
-                } catch (JSONException e) {
-                    Log.e("paymentExample", "an extremely unlikely failure occurred: ", e);
+                    } catch (JSONException e) {
+                        Log.e("paymentExample", "an extremely unlikely failure occurred: ", e);
+                    }
                 }
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(this, "The user canceled", Toast.LENGTH_LONG).show();
+                Log.i("paymentExample", "The user canceled.");
+            } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
+                Toast.makeText(this, "An invalid Payment or PayPalConfiguration was submitted. Please see the docs", Toast.LENGTH_LONG).show();
+                Log.i("paymentExample", "An invalid Payment or PayPalConfiguration was submitted. Please see the docs.");
             }
-        } else if (resultCode == Activity.RESULT_CANCELED) {
-            Toast.makeText(this, "The user canceled", Toast.LENGTH_LONG).show();
-            Log.i("paymentExample", "The user canceled.");
-        } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
-            Toast.makeText(this, "An invalid Payment or PayPalConfiguration was submitted. Please see the docs", Toast.LENGTH_LONG).show();
-            Log.i("paymentExample", "An invalid Payment or PayPalConfiguration was submitted. Please see the docs.");
+        } else {
+            if (resultCode == Activity.RESULT_OK) {
+                Calendar tmp = Calendar.getInstance();
+                tmp.set(Calendar.MINUTE, data.getIntExtra("minute", reservation.getDateTime().get(Calendar.MINUTE)));
+                tmp.set(Calendar.HOUR_OF_DAY, data.getIntExtra("hour", reservation.getDateTime().get(Calendar.HOUR_OF_DAY)));
+                tmp.set(Calendar.DAY_OF_MONTH, data.getIntExtra("day", reservation.getDateTime().get(Calendar.DAY_OF_MONTH)));
+                tmp.set(Calendar.MONTH, data.getIntExtra("month", reservation.getDateTime().get(Calendar.MONTH)));
+                tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getDateTime().get(Calendar.YEAR)));
+
+                reservation.setDateTime(tmp);
+            }
         }
     }
 
-    private void showAlert(String tittle, String message){
+    private void showAlert(String title, String message) {
         new AlertDialog.Builder(this)
-                .setTitle(tittle)
+                .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
@@ -732,6 +726,5 @@ public class ClientMainActivity extends AppCompatActivity
 
                     }
                 }).show();
-
     }
 }
