@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -29,6 +28,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,6 +63,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -94,13 +95,15 @@ public class ClientMainActivity extends AppCompatActivity
     ConstraintLayout estimatedCost;
     Reservation reservation;
     ClientMainActivity.ParserTask parserTask;
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.navigation_drawer_menu);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
+        progressBar.setVisibility(View.INVISIBLE);
         checkLocationPermission();
 
         MarkerPoints = new ArrayList<>();
@@ -195,6 +198,7 @@ public class ClientMainActivity extends AppCompatActivity
 
         // Update a traffic
         mMap.setTrafficEnabled(traffic);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
 
         // Update currency
         if (currency != null) {
@@ -250,13 +254,15 @@ public class ClientMainActivity extends AppCompatActivity
         }
 
         // Add new marker to the Google Map Android API V2
+
         mMap.addMarker(options);
+
 
         // Checks, whether start and end locations are captured
         if (MarkerPoints.size() >= 2) {
             reservation.setStartingPoint(MarkerPoints.get(0));
             reservation.setDestinationPoint(MarkerPoints.get(1));
-
+            progressBar.setVisibility(View.VISIBLE);
             // Getting URL to the Google Directions API
             String url = getUrl(reservation.getStartingPoint(), reservation.getDestinationPoint());
             Log.d("onMapClick", url);
@@ -333,6 +339,7 @@ public class ClientMainActivity extends AppCompatActivity
         } catch (Exception e) {
             Log.d("Exception", e.toString());
         } finally {
+            progressBar.setVisibility(View.INVISIBLE);
             iStream.close();
             urlConnection.disconnect();
         }
@@ -364,7 +371,15 @@ public class ClientMainActivity extends AppCompatActivity
             super.onPostExecute(result);
             parserTask = new ClientMainActivity.ParserTask();
             // Execute on thread for parsing the JSON data
+            if (result.contains("ZERO_RESULTS")) {
+                Toast.makeText(ClientMainActivity.this,R.string.route_not_found,Toast.LENGTH_SHORT).show();
+                mMap.clear();
+                MarkerPoints.clear();;
+                return;
+            }
             parserTask.execute(result);
+
+
 
         }
     }
@@ -389,10 +404,12 @@ public class ClientMainActivity extends AppCompatActivity
                 jObject = new JSONObject(jsonData[0]);
                 Log.d("ParserTask", jsonData[0]);
                 DataParser parser = new DataParser();
-                Log.d("ParserTask", parser.toString());
+
 
                 // Starts parsing data
                 routes = parser.parse(jObject);
+
+
 
                 reservation.setDistance(parser.distValue);
                 reservation.setDuration(parser.duration);
@@ -624,7 +641,7 @@ public class ClientMainActivity extends AppCompatActivity
         String currency = PreferenceManager
                 .getDefaultSharedPreferences(getApplicationContext())
                 .getString("currency", "");
-        String payPalText = "";
+        String payPalText = "EUR";
         double cost = reservation.getCost();
 
         if (currency != null)
@@ -636,9 +653,6 @@ public class ClientMainActivity extends AppCompatActivity
                 case "2":
                     cost = reservation.getCostToDollars();
                     payPalText = "USD";
-                    break;
-                default:
-                    payPalText = "EUR";
                     break;
             }
 
@@ -655,7 +669,7 @@ public class ClientMainActivity extends AppCompatActivity
         startActivityForResult(intent, 0);
     }
 
-    public void onCustimizePressed(View pressed) {
+    public void onCustomizePressed(View pressed) {
         Intent intent = new Intent(this, CustomizeReservationActivity.class);
         Bundle bundle = new Bundle();
 
@@ -706,6 +720,15 @@ public class ClientMainActivity extends AppCompatActivity
                 tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getDateTime().get(Calendar.YEAR)));
 
                 reservation.setDateTime(tmp);
+                SimpleDateFormat format1 = new SimpleDateFormat("dd-MM-yyyy");
+                String date_reservation = getString(R.string.date_reservation,format1.format(tmp.getTime()));
+                TextView date = (TextView) findViewById(R.id.dayValue);
+                date.setText(date_reservation);
+                SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+                String hour_reservation = getString(R.string.hour_reservation,formatter.format(tmp.getTime()));
+                TextView hour = (TextView) findViewById(R.id.hourValue);
+                hour.setText(hour_reservation);
+
             }
         }
     }
@@ -714,11 +737,6 @@ public class ClientMainActivity extends AppCompatActivity
         new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                }).show();
+                .setPositiveButton("OK",null).show();
     }
 }

@@ -134,4 +134,7 @@
     <string name="send_text">Send</string>
     <string name="forgot_pass_text">Mail has been sent to the email address</string>
     <string name="account_created_text">Account has been created</string>
+    <string name="route_not_found">No route found for coordinates</string>
+    <string name="date_reservation">Date: %s</string>
+    <string name="hour_reservation">Hour: %s</string>
 </resources>

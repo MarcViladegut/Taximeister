@@ -24,7 +24,7 @@
             android:background="@color/colorGray"
             android:text="@string/customize"
             android:textColor="@color/colorWhite"
-            android:onClick="onCustimizePressed"
+            android:onClick="onCustomizePressed"
             app:layout_constraintBottom_toTopOf="@+id/buttonPayment"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -116,7 +116,7 @@
 
         <TextView
             android:id="@+id/distanceValue"
-            android:layout_width="200dp"
+            android:layout_width="90dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
@@ -131,8 +131,23 @@
             app:layout_constraintVertical_bias="0.369" />
 
         <TextView
+            android:id="@+id/dayValue"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/distanceValue"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.369" />
+
+        <TextView
             android:id="@+id/durationValue"
-            android:layout_width="200dp"
+            android:layout_width="90dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
@@ -143,6 +158,21 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.01"
             app:layout_constraintStart_toEndOf="@+id/durationText"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.63" />
+
+        <TextView
+            android:id="@+id/hourValue"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.01"
+            app:layout_constraintStart_toEndOf="@+id/durationValue"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.63" />
 
@@ -178,6 +208,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".client.ClientMainActivity" />
+        <ProgressBar
+            android:id="@+id/progressbar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:max="100"
+            android:backgroundTint="@color/colorWhite"
+            android:indeterminateTint="#1a09d6"
+            android:layout_marginTop="-7dp"/>
     </FrameLayout>
 </LinearLayout>
 
