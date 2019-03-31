@@ -397,6 +397,8 @@ public class ClientMainActivity extends AppCompatActivity
 
             JSONObject jObject;
             List<List<HashMap<String, String>>> routes = null;
+            TextView date = findViewById(R.id.dayValue);
+            TextView hour = findViewById(R.id.hourValue);
             TextView distance = findViewById(R.id.distanceValue);
             TextView duration = findViewById(R.id.durationValue);
             TextView cost = findViewById(R.id.costValue);
@@ -409,11 +411,18 @@ public class ClientMainActivity extends AppCompatActivity
                 // Starts parsing data
                 routes = parser.parse(jObject);
 
-
-
                 reservation.setDistance(parser.distValue);
                 reservation.setDuration(parser.duration);
 
+                Calendar dateTime = reservation.getDateTime();
+                int month = dateTime.get(Calendar.MONTH) + 1;
+                date.setText(dateTime.get(Calendar.DAY_OF_MONTH) + "/" +
+                        ((month < 10) ? ("0" + month) : month)  + "/" + dateTime.get(Calendar.YEAR));
+
+                int hourOfDay = dateTime.get(Calendar.HOUR_OF_DAY);
+                int minuteOfDay = dateTime.get(Calendar.MINUTE);
+                hour.setText(((hourOfDay < 10) ? "0" + hourOfDay : hourOfDay) + ":" +
+                        ((minuteOfDay < 10) ? "0" + minuteOfDay : minuteOfDay));
                 distance.setText(parser.distance);
                 duration.setText(reservation.getDuration());
 
@@ -698,6 +707,7 @@ public class ClientMainActivity extends AppCompatActivity
                         Log.i("paymentExample", confirm.toJSONObject().toString(4));
 
                         // TODO: save the reservation to the firebase
+                        reservation = new Reservation();
 
                     } catch (JSONException e) {
                         Log.e("paymentExample", "an extremely unlikely failure occurred: ", e);
@@ -720,13 +730,13 @@ public class ClientMainActivity extends AppCompatActivity
                 tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getDateTime().get(Calendar.YEAR)));
 
                 reservation.setDateTime(tmp);
-                SimpleDateFormat format1 = new SimpleDateFormat("dd-MM-yyyy");
+                SimpleDateFormat format1 = new SimpleDateFormat("dd/MM/yyyy");
                 String date_reservation = getString(R.string.date_reservation,format1.format(tmp.getTime()));
-                TextView date = (TextView) findViewById(R.id.dayValue);
+                TextView date = findViewById(R.id.dayValue);
                 date.setText(date_reservation);
                 SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
                 String hour_reservation = getString(R.string.hour_reservation,formatter.format(tmp.getTime()));
-                TextView hour = (TextView) findViewById(R.id.hourValue);
+                TextView hour = findViewById(R.id.hourValue);
                 hour.setText(hour_reservation);
 
             }

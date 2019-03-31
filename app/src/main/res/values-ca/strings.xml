@@ -120,6 +120,4 @@
     <string name="forgot_pass_text">El correu ha estat enviat a la teva adreça</string>
     <string name="account_created_text">El compte ha estat creat</string>
     <string name="route_not_found">No s\'ha trobat una ruta per les coordenades</string>
-    <string name="date_reservation">Data: %s</string>
-    <string name="hour_reservation">Hora: %s</string>
 </resources>

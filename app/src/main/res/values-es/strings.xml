@@ -120,6 +120,4 @@
     <string name="forgot_pass_text">El correo ha sido enviado a tu correo</string>
     <string name="account_created_text">La cuenta ha sido creada</string>
     <string name="route_not_found">No se ha encontrado una ruta para las coordenadas</string>
-    <string name="date_reservation">Fecha: %s</string>
-    <string name="hour_reservation">Hora: %s</string>
 </resources>
