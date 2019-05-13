@@ -3,7 +3,7 @@
     <string name="app_name">Meistertaxi</string>
     <string name="text_button_login">Entrar</string>
     <string name="hint_editText_password">Contraseña</string>
-    <string name="hint_editText_usuari">Nombre d\'usuario</string>
+    <string name="hint_editText_usuari">Nombre de usuario</string>
     <string name="text_button_newUser">Registro</string>
     <string name="text_name_register_activity">Nueva cuenta</string>
     <string name="Username">Nombre d\'usuario</string>

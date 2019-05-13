@@ -47,6 +47,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.paypal.android.sdk.payments.PayPalConfiguration;
 import com.paypal.android.sdk.payments.PayPalPayment;
 import com.paypal.android.sdk.payments.PayPalService;
@@ -634,6 +635,7 @@ public class ClientMainActivity extends AppCompatActivity
             intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
         } else if (id == R.id.disconnect) {
+            FirebaseAuth.getInstance().signOut();
             intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
