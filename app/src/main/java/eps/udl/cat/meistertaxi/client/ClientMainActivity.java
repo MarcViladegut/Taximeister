@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -28,6 +29,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +50,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.paypal.android.sdk.payments.PayPalConfiguration;
 import com.paypal.android.sdk.payments.PayPalPayment;
 import com.paypal.android.sdk.payments.PayPalService;
@@ -71,9 +79,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import eps.udl.cat.meistertaxi.Driver.DriverMainActivity;
 import eps.udl.cat.meistertaxi.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
+import eps.udl.cat.meistertaxi.User;
 
 public class ClientMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -97,6 +107,10 @@ public class ClientMainActivity extends AppCompatActivity
     Reservation reservation;
     ClientMainActivity.ParserTask parserTask;
     ProgressBar progressBar;
+
+    private TextView mNameTextView;
+    private TextView mEmailTextView;
+    private ImageView mAvatarImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,6 +229,46 @@ public class ClientMainActivity extends AppCompatActivity
                     break;
             }
         }
+
+        // Update info of navigation drawer from Firebase
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        View navHeaderView = navigationView.getHeaderView(0);
+        mNameTextView = (TextView) navHeaderView.findViewById(R.id.navUsername);
+        mEmailTextView = (TextView) navHeaderView.findViewById(R.id.navEmail);
+        mAvatarImageView = (ImageView) navHeaderView.findViewById(R.id.imageViewAvatar);
+
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        FirebaseUser userLogin = mAuth.getCurrentUser();
+        DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot != null) {
+                    User userRead = dataSnapshot.getValue(User.class);
+                    mNameTextView.setText(userRead.getName() + " " + userRead.getSurname());
+                    mEmailTextView.setText(userRead.getEmail());
+                    Log.i("foto", Integer.toString(userRead.getGender()));
+                    switch (userRead.getGender()){
+                        case 0:
+                            mAvatarImageView.setImageResource(R.mipmap.ic_avatar_robot_round);
+                            break;
+                        case 1:
+                            mAvatarImageView.setImageResource(R.mipmap.ic_avatar_girl_round);
+                            break;
+                        case 2:
+                            mAvatarImageView.setImageResource(R.mipmap.ic_avatar_boy_round);
+                            break;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), "Error to update NavigationDrawer",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -634,11 +688,6 @@ public class ClientMainActivity extends AppCompatActivity
         } else if (id == R.id.configuration) {
             intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
-        } else if (id == R.id.disconnect) {
-            FirebaseAuth.getInstance().signOut();
-            intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -646,6 +695,12 @@ public class ClientMainActivity extends AppCompatActivity
         return true;
     }
 
+    public void disconnectUser(View view){
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(view.getContext(), MainActivity.class);
+        startActivity(intent);
+        finish();
+    }
 
     public void onBuyPressed(View pressed) {
 

@@ -1,5 +1,8 @@
 package eps.udl.cat.meistertaxi;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class User {
 
     private String name;
@@ -13,7 +16,7 @@ public class User {
         this.name = name;
         this.surname = "";
         this.email = email;
-        this.gender = 0;
+        this.gender = 0; // 0: None 1: Women 2: Men
         this.smoke = false;
         this.driver = driver;
     }
@@ -66,5 +69,17 @@ public class User {
 
     public void setDriver(boolean driver) {
         this.driver = driver;
+    }
+
+    public Map<String, Object> toMap() {
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("name", name);
+        result.put("surname", surname);
+        result.put("email", email);
+        result.put("gender", gender);
+        result.put("smoke", smoke);
+        result.put("driver", driver);
+
+        return result;
     }
 }

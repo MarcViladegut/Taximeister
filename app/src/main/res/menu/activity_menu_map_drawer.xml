@@ -14,9 +14,9 @@
             android:id="@+id/configuration"
             android:icon="@drawable/ic_settings"
             android:title="@string/configuration" />
-        <item
+        <!--<item
             android:id="@+id/disconnect"
             android:icon="@drawable/ic_logout"
-            android:title="@string/disconnect"/>
+            android:title="@string/disconnect"/>-->
     </group>
 </menu >

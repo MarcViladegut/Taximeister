@@ -9,16 +9,27 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.MenuItem;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
 import eps.udl.cat.meistertaxi.R;
+import eps.udl.cat.meistertaxi.User;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -36,33 +47,85 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
      */
-    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            String stringValue = value.toString();
 
-            if (preference instanceof ListPreference) {
-                ListPreference listPreference = (ListPreference) preference;
+    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+
+        private User userRead;
+        private String stringValue;
+        private FirebaseAuth mAuth;
+        private FirebaseDatabase database;
+        private Preference preference;
+
+        @Override
+        public boolean onPreferenceChange(Preference preferenceChanged, Object value) {
+
+            stringValue = value.toString();
+            preference = preferenceChanged;
+            mAuth = FirebaseAuth.getInstance();
+            database = FirebaseDatabase.getInstance();
+
+            FirebaseUser userLogin = mAuth.getCurrentUser();
+            DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+            usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    userRead = dataSnapshot.getValue(User.class);
+                    updateUI(preference);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) { }
+            });
+
+            return true;
+        }
+
+        private void updateUI(Preference preferenceChanged) {
+            if (preferenceChanged instanceof ListPreference) {
+                ListPreference listPreference = (ListPreference) preferenceChanged;
                 int index = listPreference.findIndexOfValue(stringValue);
 
-                // Set the summary to reflect the new value.
-                preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
+                if (preferenceChanged.getKey().equals("gender"))
+                    userRead.setGender(index);
 
-            } else if (preference.getKey().equals("transit")) {
-                if (stringValue.equals("true"))
-                    preference.setSummary(R.string.yes_text);
-                else
-                    preference.setSummary(R.string.no_text);
-            } else if (preference.getKey().equals("smoke")) {
-                if (stringValue.equals("true"))
-                    preference.setSummary(R.string.yes_text);
-                else
-                    preference.setSummary(R.string.no_text);
+                // Set the summary to reflect the new value.
+                preferenceChanged.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
+
             } else {
-                // simple string representation.
-                preference.setSummary(stringValue);
+                switch (preferenceChanged.getKey()){
+                    case "username":
+                        userRead.setName(stringValue);
+                        preferenceChanged.setSummary(stringValue);
+                        break;
+                    case "surname":
+                        userRead.setSurname(stringValue);
+                        preferenceChanged.setSummary(stringValue);
+                        break;
+                    case "smoke":
+                        if (stringValue.equals("true")){
+                            userRead.setSmoke(true);
+                            preferenceChanged.setSummary(R.string.yes_text);
+                        } else {
+                            userRead.setSmoke(false);
+                            preferenceChanged.setSummary(R.string.no_text);
+                        }
+                        break;
+                    case "transit":
+                        if (stringValue.equals("true"))
+                            preferenceChanged.setSummary(R.string.yes_text);
+                        else
+                            preferenceChanged.setSummary(R.string.no_text);
+                        break;
+
+                    default:
+                        preferenceChanged.setSummary(stringValue);
+                }
             }
-            return true;
+
+            Map<String, Object> childUpdates = new HashMap<>();
+            childUpdates.put(mAuth.getUid(), userRead.toMap());
+            database.getReference("users").updateChildren(childUpdates);
         }
     };
 
@@ -188,6 +251,32 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_account);
             setHasOptionsMenu(true);
+
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+            FirebaseUser userLogin = mAuth.getCurrentUser();
+            DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+            usersRef.addValueEventListener(new ValueEventListener() {
+
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User userRead = dataSnapshot.getValue(User.class);
+                    Preference userPref = findPreference("username");
+                    Preference surnamePref = findPreference("surname");
+                    Preference genderPref = findPreference("gender");
+                    Preference smokePref = findPreference("smoke");
+
+                    userPref.setSummary(userRead.getName());
+                    surnamePref.setSummary(userRead.getSurname());
+                    ListPreference listPreference = (ListPreference) genderPref;
+                    genderPref.setSummary(userRead.getGender() >= 0 ? listPreference.getEntries()[userRead.getGender()] : null);
+                    smokePref.setSummary(userRead.isSmoke() ? R.string.yes_text : R.string.no_text);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) { }
+            });
 
             bindPreferenceSummaryToValue(findPreference("username"));
             bindPreferenceSummaryToValue(findPreference("surname"));

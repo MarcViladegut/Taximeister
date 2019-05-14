@@ -1,5 +1,6 @@
 package eps.udl.cat.meistertaxi;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.support.annotation.NonNull;
@@ -32,6 +33,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     private EditText password;
     private EditText confirmPassword;
     private Switch driver;
+    private ProgressDialog progressDialog;
+    private boolean mailExists;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +44,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         getSupportActionBar().hide();
+
+        progressDialog = new ProgressDialog(this);
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
@@ -70,8 +75,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 break;
             case R.id.buttonSubmit:
                 if (checkInformation()){
-                    Log.d("Autenticacion", email.getText().toString());
-
+                    progressDialog.setMessage("Registrando...");
+                    progressDialog.show();
                     mAuth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
                             .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                                 @Override
@@ -89,11 +94,13 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                         myRef.child(currentUser.getUid()).setValue(user);
 
                                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                        progressDialog.dismiss();
                                         startActivity(intent);
                                         finish();
                                     } else {
                                         // If sign in fails, display a message to the user.
                                         Log.w("auth", "createUserWithEmail:failure", task.getException());
+                                        progressDialog.dismiss();
                                         Toast.makeText(getApplicationContext(), "Authentication failed.",
                                                 Toast.LENGTH_SHORT).show();
                                     }
@@ -104,7 +111,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    boolean mailExists;
     private boolean checkInformation(){
         // Check an empty fields
         if (username.getText().toString().equals("") || email.getText().toString().equals("") ||

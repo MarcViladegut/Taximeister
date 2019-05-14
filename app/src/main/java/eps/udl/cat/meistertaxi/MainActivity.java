@@ -1,5 +1,6 @@
 package eps.udl.cat.meistertaxi;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FirebaseAuth mAuth;
     private EditText email;
     private EditText password;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
+
+        progressDialog = new ProgressDialog(this);
 
         email = findViewById(R.id.editText);
         password = findViewById(R.id.editText1);
@@ -68,45 +73,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 finish();
                 break;
             case R.id.buttonLogin:
-                mAuth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString())
-                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    // Check is the client user o driver user
-                                    final FirebaseDatabase database = FirebaseDatabase.getInstance();
-                                    FirebaseUser userLogin = mAuth.getCurrentUser();
-                                    DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
-                                    usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                        Intent i;
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                            User userRead = dataSnapshot.getValue(User.class);
-                                            if (userRead.isDriver())
-                                                i = new Intent(getApplicationContext(), DriverMainActivity.class);
-                                            else
-                                                i = new Intent(getApplicationContext(), ClientMainActivity.class);
-
-                                            startActivity(i);
-                                            finish();
-                                            // Sign in success, update UI with the signed-in user's information
-                                            Log.d("auth", "signInWithEmail:success");
-                                        }
-
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError databaseError) {
-                                            Toast.makeText(getApplicationContext(), "Error to read from Database.",
-                                                    Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                } else {
-                                    // If sign in fails, display a message to the user.
-                                    Log.w("auth", "signInWithEmail:failure", task.getException());
-                                    Toast.makeText(getApplicationContext(), "Authentication failed.",
-                                            Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+                if (email.getText().toString().isEmpty() || password.getText().toString().isEmpty())
+                    Toast.makeText(getApplicationContext(), "There are a blank fields",
+                            Toast.LENGTH_SHORT).show();
+                else
+                    logIn(email.getText().toString(), password.getText().toString());
                 break;
             case R.id.textForgotPassword:
                 LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MainActivity.this);
@@ -135,5 +106,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 alertDialogAndroid.show();
                 break;
         }
+    }
+
+    private void logIn(String email, String password) {
+        progressDialog.setMessage("Iniciando sessión");
+        progressDialog.show();
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Check is the client user o driver user
+                            final FirebaseDatabase database = FirebaseDatabase.getInstance();
+                            FirebaseUser userLogin = mAuth.getCurrentUser();
+                            DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+                            usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    Intent i;
+                                    User userRead = dataSnapshot.getValue(User.class);
+                                    if (userRead.isDriver())
+                                        i = new Intent(getApplicationContext(), DriverMainActivity.class);
+                                    else
+                                        i = new Intent(getApplicationContext(), ClientMainActivity.class);
+                                    progressDialog.dismiss();
+                                    startActivity(i);
+                                    finish();
+                                    // Sign in success, update UI with the signed-in user's information
+                                    Log.d("auth", "signInWithEmail:success");
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(getApplicationContext(), "Error to read from Database",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        } else {
+                            progressDialog.dismiss();
+                            // If sign in fails, display a message to the user.
+                            Log.w("auth", "signInWithEmail:failure", task.getException());
+                            Toast.makeText(getApplicationContext(), "Authentication failed",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 }
