@@ -83,6 +83,7 @@ import eps.udl.cat.meistertaxi.Driver.DriverMainActivity;
 import eps.udl.cat.meistertaxi.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
+import eps.udl.cat.meistertaxi.ReservationFromJSON;
 import eps.udl.cat.meistertaxi.User;
 
 public class ClientMainActivity extends AppCompatActivity
@@ -111,6 +112,10 @@ public class ClientMainActivity extends AppCompatActivity
     private TextView mNameTextView;
     private TextView mEmailTextView;
     private ImageView mAvatarImageView;
+
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+    private FirebaseDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,6 +156,11 @@ public class ClientMainActivity extends AppCompatActivity
 
         // Initialize and assign a unique id
         reservation = new Reservation();
+
+        // Initialize Firebase
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+        database = FirebaseDatabase.getInstance();
     }
 
     @Override
@@ -249,7 +259,7 @@ public class ClientMainActivity extends AppCompatActivity
                     mNameTextView.setText(userRead.getName() + " " + userRead.getSurname());
                     mEmailTextView.setText(userRead.getEmail());
                     Log.i("foto", Integer.toString(userRead.getGender()));
-                    switch (userRead.getGender()){
+                    switch (userRead.getGender()) {
                         case 0:
                             mAvatarImageView.setImageResource(R.mipmap.ic_avatar_robot_round);
                             break;
@@ -427,13 +437,13 @@ public class ClientMainActivity extends AppCompatActivity
             parserTask = new ClientMainActivity.ParserTask();
             // Execute on thread for parsing the JSON data
             if (result.contains("ZERO_RESULTS")) {
-                Toast.makeText(ClientMainActivity.this,R.string.route_not_found,Toast.LENGTH_SHORT).show();
+                Toast.makeText(ClientMainActivity.this, R.string.route_not_found, Toast.LENGTH_SHORT).show();
                 mMap.clear();
-                MarkerPoints.clear();;
+                MarkerPoints.clear();
+                ;
                 return;
             }
             parserTask.execute(result);
-
 
 
         }
@@ -472,7 +482,7 @@ public class ClientMainActivity extends AppCompatActivity
                 Calendar dateTime = reservation.getDateTime();
                 int month = dateTime.get(Calendar.MONTH) + 1;
                 date.setText(dateTime.get(Calendar.DAY_OF_MONTH) + "/" +
-                        ((month < 10) ? ("0" + month) : month)  + "/" + dateTime.get(Calendar.YEAR));
+                        ((month < 10) ? ("0" + month) : month) + "/" + dateTime.get(Calendar.YEAR));
 
                 int hourOfDay = dateTime.get(Calendar.HOUR_OF_DAY);
                 int minuteOfDay = dateTime.get(Calendar.MINUTE);
@@ -683,8 +693,8 @@ public class ClientMainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.reservation) {
-            // TODO implements de firebase to store a reservations
-            Toast.makeText(this, "This button will implement very soon", Toast.LENGTH_LONG).show();
+            intent = new Intent(this, ReservationActivity.class);
+            startActivity(intent);
         } else if (id == R.id.configuration) {
             intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
@@ -695,7 +705,7 @@ public class ClientMainActivity extends AppCompatActivity
         return true;
     }
 
-    public void disconnectUser(View view){
+    public void disconnectUser(View view) {
         FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(view.getContext(), MainActivity.class);
         startActivity(intent);
@@ -750,21 +760,59 @@ public class ClientMainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         if (requestCode == 0) {
             if (resultCode == Activity.RESULT_OK) {
                 PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
                 if (confirm != null) {
                     try {
-                        reservation.setPaid(true);
+                        final DatabaseReference ref = database.getReference("reservations").child("numReservation");
+                        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.getValue(Integer.class) == null) {
+                                    ref.setValue(0);
+                                    reservation.setIdReservation(0);
+                                    ref.setValue(1);
+                                } else {
+                                    int num = dataSnapshot.getValue(Integer.class);
+                                    reservation.setIdReservation(num);
+                                    ref.setValue(num += 1);
+                                }
+
+                                reservation.setPaid(true);
+
+                                Calendar tmp = Calendar.getInstance();
+                                tmp.set(Calendar.MINUTE, data.getIntExtra("minute", reservation.getDateTime().get(Calendar.MINUTE)));
+                                tmp.set(Calendar.HOUR_OF_DAY, data.getIntExtra("hour", reservation.getDateTime().get(Calendar.HOUR_OF_DAY)));
+                                tmp.set(Calendar.DAY_OF_MONTH, data.getIntExtra("day", reservation.getDateTime().get(Calendar.DAY_OF_MONTH)));
+                                tmp.set(Calendar.MONTH, data.getIntExtra("month", reservation.getDateTime().get(Calendar.MONTH)));
+                                tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getDateTime().get(Calendar.YEAR)));
+
+                                reservation.setDateTime(tmp);
+                                reservation.setDateTimeLong(reservation.getDateTime());
+
+                                ReservationFromJSON reservationFromJSON = new ReservationFromJSON();
+                                reservationFromJSON = reservationFromJSON.fromReservation(getApplicationContext(), reservation);
+
+                                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                                DatabaseReference myRef = database.getReference("reservations");
+
+                                myRef.child(currentUser.getUid()).child(Integer.toString(reservation.getIdReservation())).setValue(reservationFromJSON);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+
                         showAlert(getString(R.string.reserve_successful), getString(R.string.reserve_successful_msg));
                         estimatedCost.setVisibility(View.GONE);
                         MarkerPoints.clear();
                         mMap.clear();
-                        Log.i("paymentExample", confirm.toJSONObject().toString(4));
 
-                        // TODO: save the reservation to the firebase
-                        reservation = new Reservation();
+                        Log.i("paymentExample", confirm.toJSONObject().toString(4));
 
                     } catch (JSONException e) {
                         Log.e("paymentExample", "an extremely unlikely failure occurred: ", e);
@@ -788,14 +836,13 @@ public class ClientMainActivity extends AppCompatActivity
 
                 reservation.setDateTime(tmp);
                 SimpleDateFormat format1 = new SimpleDateFormat("dd/MM/yyyy");
-                String date_reservation = getString(R.string.date_reservation,format1.format(tmp.getTime()));
+                String date_reservation = getString(R.string.date_reservation, format1.format(tmp.getTime()));
                 TextView date = findViewById(R.id.dayValue);
                 date.setText(date_reservation);
                 SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
-                String hour_reservation = getString(R.string.hour_reservation,formatter.format(tmp.getTime()));
+                String hour_reservation = getString(R.string.hour_reservation, formatter.format(tmp.getTime()));
                 TextView hour = findViewById(R.id.hourValue);
                 hour.setText(hour_reservation);
-
             }
         }
     }
@@ -804,6 +851,6 @@ public class ClientMainActivity extends AppCompatActivity
         new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton("OK",null).show();
+                .setPositiveButton("OK", null).show();
     }
 }

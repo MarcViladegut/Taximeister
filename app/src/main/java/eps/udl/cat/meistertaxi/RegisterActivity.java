@@ -42,7 +42,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_register);
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
         getSupportActionBar().hide();
 
         progressDialog = new ProgressDialog(this);

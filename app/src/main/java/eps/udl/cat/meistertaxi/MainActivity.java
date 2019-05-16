@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Check is the client user o driver user
-                            final FirebaseDatabase database = FirebaseDatabase.getInstance();
+                            FirebaseDatabase database = FirebaseDatabase.getInstance();
                             FirebaseUser userLogin = mAuth.getCurrentUser();
                             DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
                             usersRef.addListenerForSingleValueEvent(new ValueEventListener() {

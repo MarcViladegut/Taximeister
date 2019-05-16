@@ -1,16 +1,18 @@
 package eps.udl.cat.meistertaxi;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.Exclude;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Calendar;
 
 public class Reservation implements Serializable {
 
-    public static final double CURRENCY_DOLLAR = 1.12;
-    public static final double CURRENCY_POUND = 0.85;
+    private static final double CURRENCY_DOLLAR = 1.12;
+    private static final double CURRENCY_POUND = 0.85;
 
-    public static final double TAX_INITIAL = 2.36;
+    private static final double TAX_INITIAL = 2.36;
     private static final double PRICE_PER_KILOMETER_HIGH = 0.002;
     private static final double PRICE_PER_KILOMETER_MEDIUM = 0.0015;
     private static final double PRICE_PER_KILOMETER_LOW = 0.001;
@@ -23,16 +25,21 @@ public class Reservation implements Serializable {
     private int distance;
     private String duration;
     private boolean paid;
+    private long dateTimeLong;
 
     public Reservation(){
         idReservation = Reservation.id++;
         distance = 0;
         dateTime = Calendar.getInstance();
-        paid = false;
+        this.paid = false;
     }
 
     public int getIdReservation() {
         return idReservation;
+    }
+
+    public void setIdReservation(int reservation){
+        this.idReservation = reservation;
     }
 
     public LatLng getStartingPoint() {
@@ -51,6 +58,7 @@ public class Reservation implements Serializable {
         this.destinationPoint = destinationPoint;
     }
 
+    @Exclude
     public Calendar getDateTime() {
         return dateTime;
     }
@@ -87,10 +95,12 @@ public class Reservation implements Serializable {
             return PRICE_PER_KILOMETER_LOW * distance + TAX_INITIAL;
     }
 
+    @Exclude
     public double getCostToDollars(){
         return getCost() * CURRENCY_DOLLAR;
     }
 
+    @Exclude
     public double getCostToPounds(){
         return getCost() * CURRENCY_POUND;
     }
@@ -101,5 +111,26 @@ public class Reservation implements Serializable {
 
     public void setPaid(boolean paid){
         this.paid = paid;
+    }
+
+    public long getDateTimeLong(){
+        return dateTimeLong;
+    }
+
+    public void setDateTimeLong(Calendar calendar){
+        Timestamp timestamp = new Timestamp(calendar.getTimeInMillis());
+        dateTimeLong = timestamp.getTime();
+    }
+
+    public long dateToTimeStamp(){
+        Timestamp timestamp = new Timestamp(dateTime.getTimeInMillis());
+        return timestamp.getTime();
+    }
+
+    @Exclude
+    public Calendar timeStampToDate(Timestamp timestamp){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(timestamp.getTime());
+        return calendar;
     }
 }
