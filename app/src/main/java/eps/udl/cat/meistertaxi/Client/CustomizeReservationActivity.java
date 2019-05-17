@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.client;
+package eps.udl.cat.meistertaxi.Client;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -27,11 +27,11 @@ import java.util.Objects;
 
 import eps.udl.cat.meistertaxi.R;
 
-public class CustomizeReservationActivity extends AppCompatActivity implements View.OnClickListener{
+import static eps.udl.cat.meistertaxi.Constants.BAR;
+import static eps.udl.cat.meistertaxi.Constants.TWO_POINTS;
+import static eps.udl.cat.meistertaxi.Constants.ZERO;
 
-    public static final String ZERO = "0";
-    public static final String TWO_POINTS = ":";
-    public static final String BAR = "/";
+public class CustomizeReservationActivity extends AppCompatActivity implements View.OnClickListener{
 
     public final Calendar calendar = Calendar.getInstance();
     Calendar tmp = Calendar.getInstance();
@@ -58,7 +58,7 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
         intentResult = new Intent();
 
         TextView idReservation = findViewById(R.id.idReservationValue);
-        idReservation.setText(Integer.toString(getIntent().getIntExtra("reservationId", 34)));
+        idReservation.setText(Integer.toString(getIntent().getIntExtra("reservationId", 0)));
 
         Bundle bundle = getIntent().getParcelableExtra("bundleFromTo");
         LatLng startingPoint = bundle.getParcelable("reservationFrom");

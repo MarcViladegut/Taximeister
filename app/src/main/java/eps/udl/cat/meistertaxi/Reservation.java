@@ -1,37 +1,40 @@
 package eps.udl.cat.meistertaxi;
 
-import com.google.android.gms.maps.model.LatLng;
+import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
+
 import com.google.firebase.database.Exclude;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Locale;
 
-public class Reservation implements Serializable {
+import static eps.udl.cat.meistertaxi.Constants.BAR;
+import static eps.udl.cat.meistertaxi.Constants.CURRENCY_DOLLAR;
+import static eps.udl.cat.meistertaxi.Constants.CURRENCY_POUND;
+import static eps.udl.cat.meistertaxi.Constants.PRICE_PER_KILOMETER_HIGH;
+import static eps.udl.cat.meistertaxi.Constants.PRICE_PER_KILOMETER_LOW;
+import static eps.udl.cat.meistertaxi.Constants.PRICE_PER_KILOMETER_MEDIUM;
+import static eps.udl.cat.meistertaxi.Constants.TAX_INITIAL;
+import static eps.udl.cat.meistertaxi.Constants.TWO_POINTS;
+import static eps.udl.cat.meistertaxi.Constants.ZERO;
 
-    private static final double CURRENCY_DOLLAR = 1.12;
-    private static final double CURRENCY_POUND = 0.85;
+public class Reservation extends Route implements Serializable {
 
-    private static final double TAX_INITIAL = 2.36;
-    private static final double PRICE_PER_KILOMETER_HIGH = 0.002;
-    private static final double PRICE_PER_KILOMETER_MEDIUM = 0.0015;
-    private static final double PRICE_PER_KILOMETER_LOW = 0.001;
-
-    public static int id = 0;
     private int idReservation;
-    private LatLng startingPoint;
-    private LatLng destinationPoint;
-    private Calendar dateTime;
-    private int distance;
-    private String duration;
-    private boolean paid;
-    private long dateTimeLong;
+    private String originLocality;
+    private String destinationLocality;
+    private long dateTime;
+    private double cost;
 
-    public Reservation(){
-        idReservation = Reservation.id++;
-        distance = 0;
-        dateTime = Calendar.getInstance();
-        this.paid = false;
+    public Reservation(){ }
+
+    public Reservation(Route route, long dataTime){
+        super(route.getOrigin(), route.getDestination(), route.getDistance(), route.getDuration());
+        this.dateTime = dataTime;
+        this.setCost(route.getDistance());
     }
 
     public int getIdReservation() {
@@ -42,95 +45,101 @@ public class Reservation implements Serializable {
         this.idReservation = reservation;
     }
 
-    public LatLng getStartingPoint() {
-        return startingPoint;
+    public String getOriginLocality() {
+        return originLocality;
     }
 
-    public void setStartingPoint(LatLng startingPoint) {
-        this.startingPoint = startingPoint;
+    public void setOriginLocality(String originLocality) {
+        this.originLocality = originLocality;
     }
 
-    public LatLng getDestinationPoint() {
-        return destinationPoint;
+    public String getDestinationLocality() {
+        return destinationLocality;
     }
 
-    public void setDestinationPoint(LatLng destinationPoint) {
-        this.destinationPoint = destinationPoint;
+    public void setDestinationLocality(String destinationLocality) {
+        this.destinationLocality = destinationLocality;
     }
 
-    @Exclude
-    public Calendar getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(Calendar dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public int getDistance() {
-        return distance;
-    }
-
-    public void setDistance(int distance) {
-        this.distance = distance;
-    }
-
-    public String getDuration() {
-        return duration;
-    }
-
-    public void setDuration(String duration) {
-        this.duration = duration;
+    public void setCost(int distance){
+        // tariff 1: Under 20 km
+        if (this.getDistance() <= 20000)
+            this.cost = PRICE_PER_KILOMETER_HIGH * distance + TAX_INITIAL;
+            // tariff 2: between 20 and 100 km
+        else if (this.getDistance() <= 100000)
+            this.cost = PRICE_PER_KILOMETER_MEDIUM * distance + TAX_INITIAL;
+            // tariff 3: More than 100 km
+        else
+            this.cost = PRICE_PER_KILOMETER_LOW * distance + TAX_INITIAL;
     }
 
     public double getCost(){
-        // tariff 1: Under 20 km
-        if (distance <= 20000)
-            return PRICE_PER_KILOMETER_HIGH * distance + TAX_INITIAL;
-        // tariff 2: between 20 and 100 km
-        else if (distance <= 100000)
-            return PRICE_PER_KILOMETER_MEDIUM * distance + TAX_INITIAL;
-        // tariff 3: More than 100 km
-        else
-            return PRICE_PER_KILOMETER_LOW * distance + TAX_INITIAL;
+        return this.cost;
     }
 
-    @Exclude
     public double getCostToDollars(){
-        return getCost() * CURRENCY_DOLLAR;
+        return cost * CURRENCY_DOLLAR;
     }
 
-    @Exclude
     public double getCostToPounds(){
-        return getCost() * CURRENCY_POUND;
+        return cost * CURRENCY_POUND;
     }
 
-    public boolean isPaid(){
-        return paid;
+    public long getDateTime() {
+        return dateTime;
     }
 
-    public void setPaid(boolean paid){
-        this.paid = paid;
-    }
-
-    public long getDateTimeLong(){
-        return dateTimeLong;
-    }
-
-    public void setDateTimeLong(Calendar calendar){
-        Timestamp timestamp = new Timestamp(calendar.getTimeInMillis());
-        dateTimeLong = timestamp.getTime();
-    }
-
-    public long dateToTimeStamp(){
-        Timestamp timestamp = new Timestamp(dateTime.getTimeInMillis());
-        return timestamp.getTime();
+    public void setDateTimeFromCalendar(Calendar calendar){
+        this.dateTime = calendar.getTimeInMillis();
     }
 
     @Exclude
-    public Calendar timeStampToDate(Timestamp timestamp){
+    public Calendar getCalendarFromDateTime(){
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(timestamp.getTime());
+        calendar.setTimeInMillis(this.dateTime);
         return calendar;
+    }
+
+    public String getDateToString(){
+        Calendar calendar = this.getCalendarFromDateTime();
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int month = calendar.get(Calendar.MONTH) + 1;
+        int year = calendar.get(Calendar.YEAR);
+
+        return ((day < 10) ? (ZERO + day) : day) + BAR +
+                ((month < 10) ? (ZERO + month) : month) + BAR + year;
+    }
+
+    public String getTimeToString(){
+        Calendar calendar = this.getCalendarFromDateTime();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        return ((hour < 10) ? ZERO + hour : hour) + TWO_POINTS +
+                ((minute < 10) ? ZERO + minute : minute);
+    }
+
+    public void setOriginToString(Context context){
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+        Address addressFrom = new Address(Locale.getDefault());
+        try {
+            addressFrom = geocoder.getFromLocation(this.getOrigin().latitude,
+                    this.getOrigin().longitude, 1).get(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.setOriginLocality(addressFrom.getLocality());
+    }
+
+    public void setDestinationToString(Context context){
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+        Address addressTo = new Address(Locale.getDefault());
+        try {
+            addressTo = geocoder.getFromLocation(this.getDestination().latitude,
+                    this.getDestination().longitude, 1).get(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.setDestinationLocality(addressTo.getLocality());
     }
 }

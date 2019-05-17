@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.client;
+package eps.udl.cat.meistertaxi.Client;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.User;
 

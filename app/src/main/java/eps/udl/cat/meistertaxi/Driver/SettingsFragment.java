@@ -5,7 +5,7 @@ import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 
-import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
+import eps.udl.cat.meistertaxi.Client.AppCompatPreferenceActivity;
 import eps.udl.cat.meistertaxi.R;
 
 public class SettingsFragment extends AppCompatPreferenceActivity {

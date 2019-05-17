@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.client;
+package eps.udl.cat.meistertaxi.Client;
 
 import android.content.pm.ActivityInfo;
 import android.support.annotation.NonNull;
@@ -19,7 +19,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.ReservationFromJSON;
+import eps.udl.cat.meistertaxi.Reservation;
 
 public class ReservationActivity extends AppCompatActivity {
 
@@ -27,7 +27,7 @@ public class ReservationActivity extends AppCompatActivity {
     private FirebaseUser userLogin;
     private FirebaseDatabase database;
 
-    private ArrayList<ReservationFromJSON> listData;
+    private ArrayList<Reservation> listData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +50,10 @@ public class ReservationActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot val : dataSnapshot.getChildren()){
                     Log.i("informacio", val.toString());
-                    ReservationFromJSON reservation = val.getValue(ReservationFromJSON.class);
+                    Reservation reservation = val.getValue(Reservation.class);
                     listData.add(reservation);
                 }
                 // Create the ArrayAdapter use the item row layout and the list data.
-                //ArrayAdapter<Reservation> listDataAdapter = new ArrayAdapter<>(this, R.layout.activity_reservation_row, R.id.listRowTextView, listData);
                 ReservationAdapter reservationAdapter = new ReservationAdapter(getApplicationContext(), listData);
 
                 // Set this adapter to inner ListView object.

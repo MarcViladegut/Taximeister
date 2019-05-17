@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name="android.support.multidex.MultiDexApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_app_taxi"
         android:label="@string/app_name"
@@ -18,15 +19,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".client.ReservationActivity"></activity>
-        <activity android:name=".client.CustomizeReservationActivity" />
+        <activity android:name=".Client.ReservationActivity"></activity>
+        <activity android:name=".Client.CustomizeReservationActivity" />
         <activity android:name=".Driver.DriverMainActivity" />
         <activity android:name=".Driver.SettingsFragment" />
         <activity
-            android:name=".client.SettingsActivity"
+            android:name=".Client.SettingsActivity"
             android:label="@string/title_activity_settings" />
         <activity
-            android:name=".client.ClientMainActivity"
+            android:name=".Client.ClientMainActivity"
             android:label="@string/title_activity_menu_map"
             android:theme="@style/AppTheme.NoActionBar" />
         <!--
@@ -41,8 +42,8 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".Main.RegisterActivity" />
+        <activity android:name=".Main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

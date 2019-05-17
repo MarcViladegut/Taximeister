@@ -9,7 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
-import eps.udl.cat.meistertaxi.MainActivity;
+import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 
 public class DriverMainActivity extends AppCompatActivity {

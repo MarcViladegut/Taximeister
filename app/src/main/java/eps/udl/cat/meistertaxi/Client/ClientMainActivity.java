@@ -1,10 +1,9 @@
-package eps.udl.cat.meistertaxi.client;
+package eps.udl.cat.meistertaxi.Client;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -79,12 +78,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import eps.udl.cat.meistertaxi.Driver.DriverMainActivity;
-import eps.udl.cat.meistertaxi.MainActivity;
+import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
-import eps.udl.cat.meistertaxi.ReservationFromJSON;
+import eps.udl.cat.meistertaxi.Route;
 import eps.udl.cat.meistertaxi.User;
+
+import static eps.udl.cat.meistertaxi.Constants.SPACE;
 
 public class ClientMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -106,6 +106,7 @@ public class ClientMainActivity extends AppCompatActivity
     LocationRequest mLocationRequest;
     ConstraintLayout estimatedCost;
     Reservation reservation;
+    Route route;
     ClientMainActivity.ParserTask parserTask;
     ProgressBar progressBar;
 
@@ -154,8 +155,8 @@ public class ClientMainActivity extends AppCompatActivity
         intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
         startService(intent);
 
-        // Initialize and assign a unique id
-        reservation = new Reservation();
+        // Initialize route
+        route = new Route();
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
@@ -168,6 +169,7 @@ public class ClientMainActivity extends AppCompatActivity
         if (mMap != null) {
             updateMap();
         }
+        updateNavigationDrawer();
         super.onResume();
     }
 
@@ -226,7 +228,7 @@ public class ClientMainActivity extends AppCompatActivity
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
         // Update currency
-        if (currency != null) {
+        if (currency != null && reservation != null) {
             switch (currency) {
                 case "1":
                     cost.setText(String.format("%.2f", reservation.getCostToPounds()) + " pounds");
@@ -239,8 +241,10 @@ public class ClientMainActivity extends AppCompatActivity
                     break;
             }
         }
+    }
 
-        // Update info of navigation drawer from Firebase
+    public void updateNavigationDrawer(){
+
         NavigationView navigationView = findViewById(R.id.nav_view);
         View navHeaderView = navigationView.getHeaderView(0);
         mNameTextView = (TextView) navHeaderView.findViewById(R.id.navUsername);
@@ -256,9 +260,10 @@ public class ClientMainActivity extends AppCompatActivity
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot != null) {
                     User userRead = dataSnapshot.getValue(User.class);
-                    mNameTextView.setText(userRead.getName() + " " + userRead.getSurname());
+
+                    mNameTextView.setText(userRead.getName() + SPACE + userRead.getSurname());
                     mEmailTextView.setText(userRead.getEmail());
-                    Log.i("foto", Integer.toString(userRead.getGender()));
+
                     switch (userRead.getGender()) {
                         case 0:
                             mAvatarImageView.setImageResource(R.mipmap.ic_avatar_robot_round);
@@ -325,11 +330,11 @@ public class ClientMainActivity extends AppCompatActivity
 
         // Checks, whether start and end locations are captured
         if (MarkerPoints.size() >= 2) {
-            reservation.setStartingPoint(MarkerPoints.get(0));
-            reservation.setDestinationPoint(MarkerPoints.get(1));
+            route.setOrigin(MarkerPoints.get(0));
+            route.setDestination(MarkerPoints.get(1));
             progressBar.setVisibility(View.VISIBLE);
             // Getting URL to the Google Directions API
-            String url = getUrl(reservation.getStartingPoint(), reservation.getDestinationPoint());
+            String url = getUrl(route.getOrigin(), route.getDestination());
             Log.d("onMapClick", url);
             FetchUrl FetchUrl = new FetchUrl();
 
@@ -476,20 +481,23 @@ public class ClientMainActivity extends AppCompatActivity
                 // Starts parsing data
                 routes = parser.parse(jObject);
 
-                reservation.setDistance(parser.distValue);
-                reservation.setDuration(parser.duration);
+                route.setDistance(parser.distValue);
+                route.setDuration(parser.duration);
 
-                Calendar dateTime = reservation.getDateTime();
+                reservation = new Reservation(route, Calendar.getInstance().getTimeInMillis());
+                date.setText(reservation.getDateToString());
+                /*Calendar dateTime = reservation.getDateTime();
                 int month = dateTime.get(Calendar.MONTH) + 1;
                 date.setText(dateTime.get(Calendar.DAY_OF_MONTH) + "/" +
-                        ((month < 10) ? ("0" + month) : month) + "/" + dateTime.get(Calendar.YEAR));
+                        ((month < 10) ? ("0" + month) : month) + "/" + dateTime.get(Calendar.YEAR));*/
 
-                int hourOfDay = dateTime.get(Calendar.HOUR_OF_DAY);
+                hour.setText(reservation.getTimeToString());
+                /*int hourOfDay = dateTime.get(Calendar.HOUR_OF_DAY);
                 int minuteOfDay = dateTime.get(Calendar.MINUTE);
                 hour.setText(((hourOfDay < 10) ? "0" + hourOfDay : hourOfDay) + ":" +
-                        ((minuteOfDay < 10) ? "0" + minuteOfDay : minuteOfDay));
+                        ((minuteOfDay < 10) ? "0" + minuteOfDay : minuteOfDay));*/
                 distance.setText(parser.distance);
-                duration.setText(reservation.getDuration());
+                duration.setText(parser.duration);
 
                 String currency = PreferenceManager
                         .getDefaultSharedPreferences(getApplicationContext())
@@ -750,9 +758,8 @@ public class ClientMainActivity extends AppCompatActivity
         Bundle bundle = new Bundle();
 
         intent.putExtra("reservationId", reservation.getIdReservation());
-
-        bundle.putParcelable("reservationFrom", reservation.getStartingPoint());
-        bundle.putParcelable("reservationTo", reservation.getDestinationPoint());
+        bundle.putParcelable("reservationFrom", reservation.getOrigin());
+        bundle.putParcelable("reservationTo", reservation.getDestination());
 
         intent.putExtra("bundleFromTo", bundle);
 
@@ -780,25 +787,23 @@ public class ClientMainActivity extends AppCompatActivity
                                     ref.setValue(num += 1);
                                 }
 
-                                reservation.setPaid(true);
+                                //reservation.setPaid(true);
 
                                 Calendar tmp = Calendar.getInstance();
-                                tmp.set(Calendar.MINUTE, data.getIntExtra("minute", reservation.getDateTime().get(Calendar.MINUTE)));
-                                tmp.set(Calendar.HOUR_OF_DAY, data.getIntExtra("hour", reservation.getDateTime().get(Calendar.HOUR_OF_DAY)));
-                                tmp.set(Calendar.DAY_OF_MONTH, data.getIntExtra("day", reservation.getDateTime().get(Calendar.DAY_OF_MONTH)));
-                                tmp.set(Calendar.MONTH, data.getIntExtra("month", reservation.getDateTime().get(Calendar.MONTH)));
-                                tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getDateTime().get(Calendar.YEAR)));
+                                tmp.set(Calendar.MINUTE, data.getIntExtra("minute", reservation.getCalendarFromDateTime().get(Calendar.MINUTE)));
+                                tmp.set(Calendar.HOUR_OF_DAY, data.getIntExtra("hour", reservation.getCalendarFromDateTime().get(Calendar.HOUR_OF_DAY)));
+                                tmp.set(Calendar.DAY_OF_MONTH, data.getIntExtra("day", reservation.getCalendarFromDateTime().get(Calendar.DAY_OF_MONTH)));
+                                tmp.set(Calendar.MONTH, data.getIntExtra("month", reservation.getCalendarFromDateTime().get(Calendar.MONTH)));
+                                tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getCalendarFromDateTime().get(Calendar.YEAR)));
 
-                                reservation.setDateTime(tmp);
-                                reservation.setDateTimeLong(reservation.getDateTime());
-
-                                ReservationFromJSON reservationFromJSON = new ReservationFromJSON();
-                                reservationFromJSON = reservationFromJSON.fromReservation(getApplicationContext(), reservation);
+                                reservation.setDateTimeFromCalendar(tmp);
+                                reservation.setOriginToString(getApplicationContext());
+                                reservation.setDestinationToString(getApplicationContext());
 
                                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                                 DatabaseReference myRef = database.getReference("reservations");
 
-                                myRef.child(currentUser.getUid()).child(Integer.toString(reservation.getIdReservation())).setValue(reservationFromJSON);
+                                myRef.child(currentUser.getUid()).child(Integer.toString(reservation.getIdReservation())).setValue(reservation);
                             }
 
                             @Override
@@ -828,13 +833,13 @@ public class ClientMainActivity extends AppCompatActivity
         } else {
             if (resultCode == Activity.RESULT_OK) {
                 Calendar tmp = Calendar.getInstance();
-                tmp.set(Calendar.MINUTE, data.getIntExtra("minute", reservation.getDateTime().get(Calendar.MINUTE)));
-                tmp.set(Calendar.HOUR_OF_DAY, data.getIntExtra("hour", reservation.getDateTime().get(Calendar.HOUR_OF_DAY)));
-                tmp.set(Calendar.DAY_OF_MONTH, data.getIntExtra("day", reservation.getDateTime().get(Calendar.DAY_OF_MONTH)));
-                tmp.set(Calendar.MONTH, data.getIntExtra("month", reservation.getDateTime().get(Calendar.MONTH)));
-                tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getDateTime().get(Calendar.YEAR)));
+                tmp.set(Calendar.MINUTE, data.getIntExtra("minute", reservation.getCalendarFromDateTime().get(Calendar.MINUTE)));
+                tmp.set(Calendar.HOUR_OF_DAY, data.getIntExtra("hour", reservation.getCalendarFromDateTime().get(Calendar.HOUR_OF_DAY)));
+                tmp.set(Calendar.DAY_OF_MONTH, data.getIntExtra("day", reservation.getCalendarFromDateTime().get(Calendar.DAY_OF_MONTH)));
+                tmp.set(Calendar.MONTH, data.getIntExtra("month", reservation.getCalendarFromDateTime().get(Calendar.MONTH)));
+                tmp.set(Calendar.YEAR, data.getIntExtra("year", reservation.getCalendarFromDateTime().get(Calendar.YEAR)));
 
-                reservation.setDateTime(tmp);
+                reservation.setDateTimeFromCalendar(tmp);
                 SimpleDateFormat format1 = new SimpleDateFormat("dd/MM/yyyy");
                 String date_reservation = getString(R.string.date_reservation, format1.format(tmp.getTime()));
                 TextView date = findViewById(R.id.dayValue);

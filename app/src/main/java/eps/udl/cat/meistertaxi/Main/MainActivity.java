@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.Main;
 
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -13,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +28,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import eps.udl.cat.meistertaxi.Driver.DriverMainActivity;
-import eps.udl.cat.meistertaxi.client.ClientMainActivity;
+import eps.udl.cat.meistertaxi.R;
+import eps.udl.cat.meistertaxi.User;
+import eps.udl.cat.meistertaxi.Client.ClientMainActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 

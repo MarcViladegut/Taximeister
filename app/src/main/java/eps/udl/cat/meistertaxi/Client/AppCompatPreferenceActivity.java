@@ -1,6 +1,5 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.Client;
 
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
