@@ -25,6 +25,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import eps.udl.cat.meistertaxi.Client;
+import eps.udl.cat.meistertaxi.Driver;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.User;
 
@@ -68,7 +70,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onClick(View v) {
         Intent intent;
-
+        User user;
         switch (v.getId()) {
             case R.id.buttonCancel:
                 intent = new Intent(getApplicationContext(), MainActivity.class);
@@ -92,8 +94,17 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                                         FirebaseDatabase database = FirebaseDatabase.getInstance();
                                         DatabaseReference myRef = database.getReference("users");
 
-                                        User user = new User(username.getText().toString(), email.getText().toString(), driver.isChecked());
-                                        myRef.child(currentUser.getUid()).setValue(user);
+                                        User user = new User(username.getText().toString(), email.getText().toString());
+
+                                        if (driver.isChecked()){
+                                            user.setDriver(true);
+                                            Driver driver = new Driver(user, 0);
+                                            myRef.child(currentUser.getUid()).setValue(driver);
+                                        } else {
+                                            user.setDriver(false);
+                                            Client client = new Client(user, 0);
+                                            myRef.child(currentUser.getUid()).setValue(client);
+                                        }
 
                                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                         progressDialog.dismiss();

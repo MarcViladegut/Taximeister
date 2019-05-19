@@ -3,17 +3,17 @@
     <!-- These settings headers are only used on tablets. -->
 
     <header
-        android:fragment="eps.udl.cat.meistertaxi.Client.SettingsActivity$GeneralPreferenceFragment"
+        android:fragment="eps.udl.cat.meistertaxi.ClientApp.SettingsActivity$GeneralPreferenceFragment"
         android:icon="@drawable/ic_info_black_24dp"
         android:title="@string/pref_header_general" />
 
     <header
-        android:fragment="eps.udl.cat.meistertaxi.Client.SettingsActivity$NotificationPreferenceFragment"
+        android:fragment="eps.udl.cat.meistertaxi.ClientApp.SettingsActivity$NotificationPreferenceFragment"
         android:icon="@drawable/ic_account"
         android:title="@string/pref_header_account" />
 
     <header
-        android:fragment="eps.udl.cat.meistertaxi.Client.SettingsActivity$DataSyncPreferenceFragment"
+        android:fragment="eps.udl.cat.meistertaxi.ClientApp.SettingsActivity$DataSyncPreferenceFragment"
         android:icon="@drawable/ic_map"
         android:title="@string/pref_header_map" />
 

@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.Client;
+package eps.udl.cat.meistertaxi.ClientApp;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
+import eps.udl.cat.meistertaxi.Client;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.User;
 
@@ -49,7 +51,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
     private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
 
-        private User userRead;
+        private Client userRead;
         private String stringValue;
         private FirebaseAuth mAuth;
         private FirebaseDatabase database;
@@ -69,7 +71,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    userRead = dataSnapshot.getValue(User.class);
+                    userRead = dataSnapshot.getValue(Client.class);
                     updateUI(preference);
                 }
 
@@ -260,7 +262,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    User userRead = dataSnapshot.getValue(User.class);
+                    Client userRead = dataSnapshot.getValue(Client.class);
                     Preference userPref = findPreference("username");
                     Preference surnamePref = findPreference("surname");
                     Preference genderPref = findPreference("gender");

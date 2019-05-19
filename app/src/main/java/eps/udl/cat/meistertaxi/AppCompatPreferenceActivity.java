@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.Client;
+package eps.udl.cat.meistertaxi;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

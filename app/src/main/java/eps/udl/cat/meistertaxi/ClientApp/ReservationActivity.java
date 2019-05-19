@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.Client;
+package eps.udl.cat.meistertaxi.ClientApp;
 
 import android.content.pm.ActivityInfo;
 import android.support.annotation.NonNull;

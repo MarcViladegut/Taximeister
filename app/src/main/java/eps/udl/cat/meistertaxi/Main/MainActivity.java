@@ -27,10 +27,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import eps.udl.cat.meistertaxi.Driver.DriverMainActivity;
+import eps.udl.cat.meistertaxi.Client;
+import eps.udl.cat.meistertaxi.ClientApp.ClientMainActivity;
+import eps.udl.cat.meistertaxi.Driver;
+import eps.udl.cat.meistertaxi.DriverApp.DriverMainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.User;
-import eps.udl.cat.meistertaxi.Client.ClientMainActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 

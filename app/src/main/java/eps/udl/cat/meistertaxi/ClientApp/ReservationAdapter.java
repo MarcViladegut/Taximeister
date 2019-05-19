@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.Client;
+package eps.udl.cat.meistertaxi.ClientApp;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

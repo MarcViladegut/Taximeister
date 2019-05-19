@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Driver.DriverMainActivity"
+    tools:context=".DriverApp.DriverMainActivity"
     android:background="@drawable/background">
 
 
@@ -22,7 +22,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.024"
-        app:srcCompat="@mipmap/ic_avatar_round"
+        app:srcCompat="@mipmap/ic_avatar_driver_round"
         android:contentDescription="@string/avatar_taxi_driver" />
 
     <TextView
@@ -131,19 +131,16 @@
         android:id="@+id/configButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="24dp"
         android:layout_marginBottom="8dp"
         android:background="@color/colorTransp"
+        android:contentDescription="@string/configuration_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/disconnectButton"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/nameTaxiDriver"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.021"
-        app:srcCompat="@drawable/ic_settings"
-        android:contentDescription="@string/configuration_button" />
+        app:layout_constraintVertical_bias="0.111"
+        app:srcCompat="@drawable/ic_settings" />
 
     <ImageButton
         android:id="@+id/disconnectButton"
@@ -153,11 +150,11 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
         android:background="@android:color/transparent"
+        android:contentDescription="@string/disconnect_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.101"
-        app:srcCompat="@drawable/ic_logout"
-        android:contentDescription="@string/disconnect_button" />
+        app:layout_constraintVertical_bias="0.111"
+        app:srcCompat="@drawable/ic_logout" />
 
 </android.support.constraint.ConstraintLayout>

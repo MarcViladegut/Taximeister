@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi.Client;
+package eps.udl.cat.meistertaxi.ClientApp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -78,11 +78,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import eps.udl.cat.meistertaxi.Client;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
 import eps.udl.cat.meistertaxi.Route;
-import eps.udl.cat.meistertaxi.User;
 
 import static eps.udl.cat.meistertaxi.Constants.SPACE;
 
@@ -259,7 +259,7 @@ public class ClientMainActivity extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot != null) {
-                    User userRead = dataSnapshot.getValue(User.class);
+                    Client userRead = dataSnapshot.getValue(Client.class);
 
                     mNameTextView.setText(userRead.getName() + SPACE + userRead.getSurname());
                     mEmailTextView.setText(userRead.getEmail());

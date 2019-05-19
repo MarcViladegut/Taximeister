@@ -19,15 +19,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".Client.ReservationActivity"></activity>
-        <activity android:name=".Client.CustomizeReservationActivity" />
-        <activity android:name=".Driver.DriverMainActivity" />
-        <activity android:name=".Driver.SettingsFragment" />
+        <activity android:name=".ClientApp.ReservationActivity"></activity>
+        <activity android:name=".ClientApp.CustomizeReservationActivity" />
+        <activity android:name=".DriverApp.DriverMainActivity" />
+        <activity android:name=".DriverApp.SettingsFragment" />
         <activity
-            android:name=".Client.SettingsActivity"
+            android:name=".ClientApp.SettingsActivity"
             android:label="@string/title_activity_settings" />
         <activity
-            android:name=".Client.ClientMainActivity"
+            android:name=".ClientApp.ClientMainActivity"
             android:label="@string/title_activity_menu_map"
             android:theme="@style/AppTheme.NoActionBar" />
         <!--
