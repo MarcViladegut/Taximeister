@@ -20,6 +20,7 @@ import java.util.ArrayList;
 
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
+import eps.udl.cat.meistertaxi.ReservationAdapter;
 
 public class ReservationActivity extends AppCompatActivity {
 

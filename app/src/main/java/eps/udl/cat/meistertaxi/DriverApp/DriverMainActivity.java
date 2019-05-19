@@ -5,8 +5,10 @@ import android.content.pm.ActivityInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CalendarView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,12 +22,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+
 import eps.udl.cat.meistertaxi.Driver;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
+import eps.udl.cat.meistertaxi.Reservation;
+import eps.udl.cat.meistertaxi.ReservationAdapter;
 import eps.udl.cat.meistertaxi.User;
 
+import static eps.udl.cat.meistertaxi.Constants.BAR;
 import static eps.udl.cat.meistertaxi.Constants.SPACE;
+import static eps.udl.cat.meistertaxi.Constants.ZERO;
 
 public class DriverMainActivity extends AppCompatActivity {
 
@@ -35,6 +44,8 @@ public class DriverMainActivity extends AppCompatActivity {
 
     private TextView nameDriver;
     private TextView licenceDriver;
+
+    private ArrayList<Reservation> listData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,21 +65,19 @@ public class DriverMainActivity extends AppCompatActivity {
         licenceDriver = (TextView)findViewById(R.id.licenceNum);
 
         // Configuración del listView para las reservas de cada dia del calendario
-        ListView listReservations;
-        ArrayAdapter<String> adapter;
+        DatabaseReference ref = database.getReference("reservations").child(currentUser.getUid());
+        CalendarView calendarView = (CalendarView)findViewById(R.id.calendarView);
 
-        listReservations = findViewById(R.id.listReservation);
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                updateListReservations(year, month, dayOfMonth);
+            }
+        });
+        Calendar calendar = Calendar.getInstance();
+        updateListReservations(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
-
-        adapter.add("Reserva 1");
-        adapter.add("Reserva 2");
-        adapter.add("Reserva 3");
-        adapter.add("Reserva 4");
-        adapter.add("Reserva 5");
-
-        listReservations.setAdapter(adapter);
-
+        // Configure the buttons of the UI
         ImageButton config = findViewById(R.id.configButton);
         config.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,6 +95,35 @@ public class DriverMainActivity extends AppCompatActivity {
                 mAuth.signOut();
                 startActivity(intent);
                 finish();
+            }
+        });
+    }
+
+    private void updateListReservations(int year, int month, int dayOfMonth){
+        DatabaseReference ref = database.getReference("reservations").child(currentUser.getUid());
+        listData = new ArrayList<>();
+        final String dataReservation = ((dayOfMonth < 10) ? (ZERO + dayOfMonth) : dayOfMonth) + BAR +
+                ((month < 10) ? (ZERO + (month + 1)) : (month + 1)) + BAR + year;
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot val : dataSnapshot.getChildren()){
+                    Reservation reservation = val.getValue(Reservation.class);
+                    if (reservation.getDateToString().equals(dataReservation))
+                        listData.add(reservation);
+                }
+                // Create the ArrayAdapter use the item row layout and the list data.
+                ReservationAdapter reservationAdapter = new ReservationAdapter(getApplicationContext(), listData);
+
+                // Set this adapter to inner ListView object.
+                ListView listReservations = findViewById(R.id.listReservation);
+                listReservations.setAdapter(reservationAdapter);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), "It's not possible to load a reservations", Toast.LENGTH_SHORT).show();
             }
         });
     }

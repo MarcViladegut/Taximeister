@@ -79,10 +79,12 @@ import java.util.List;
 import java.util.Objects;
 
 import eps.udl.cat.meistertaxi.Client;
+import eps.udl.cat.meistertaxi.Driver;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
 import eps.udl.cat.meistertaxi.Route;
+import eps.udl.cat.meistertaxi.User;
 
 import static eps.udl.cat.meistertaxi.Constants.SPACE;
 
@@ -787,8 +789,6 @@ public class ClientMainActivity extends AppCompatActivity
                                     ref.setValue(num += 1);
                                 }
 
-                                //reservation.setPaid(true);
-
                                 Calendar tmp = Calendar.getInstance();
                                 tmp.set(Calendar.MINUTE, data.getIntExtra("minute", reservation.getCalendarFromDateTime().get(Calendar.MINUTE)));
                                 tmp.set(Calendar.HOUR_OF_DAY, data.getIntExtra("hour", reservation.getCalendarFromDateTime().get(Calendar.HOUR_OF_DAY)));
@@ -803,12 +803,40 @@ public class ClientMainActivity extends AppCompatActivity
                                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                                 DatabaseReference myRef = database.getReference("reservations");
 
+                                // Assign reservation to client
                                 myRef.child(currentUser.getUid()).child(Integer.toString(reservation.getIdReservation())).setValue(reservation);
+
+                                // Assign reservation to driver
+                                assignReservationToDriver();
                             }
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
 
+                            }
+
+                            private void assignReservationToDriver(){
+                                DatabaseReference myRef = database.getReference("users");
+                                myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        boolean assigned = false;
+
+                                        for (DataSnapshot val : dataSnapshot.getChildren()) {
+                                            User user = val.getValue(User.class);
+                                            if (user.isDriver() && assigned == false) {
+                                                DatabaseReference refReservation = database.getReference("reservations");
+                                                refReservation.child(val.getKey()).child(Integer.toString(reservation.getIdReservation())).setValue(reservation);
+                                                assigned = true;
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                    }
+                                });
                             }
                         });
 
