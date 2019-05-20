@@ -137,4 +137,7 @@
     <string name="route_not_found">No route found for coordinates</string>
     <string name="date_reservation" translatable="false">%s</string>
     <string name="hour_reservation" translatable="false">%s</string>
+    <string name="default_notification_channel_id" translatable="false">default_channel</string>
+    <string name="default_notification_channel_name">Welcome notification</string>
+    <string name="msg_token_fmt">Queda 1 hora para que llegue tu taxi!</string>
 </resources>

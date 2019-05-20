@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="eps.udl.cat.meistertaxi">
+
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
@@ -19,7 +20,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".ClientApp.ReservationActivity"></activity>
+        <service
+            android:name=".FirebaseCloudMessaging.MyService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <activity android:name=".ClientApp.ReservationActivity" />
         <activity android:name=".ClientApp.CustomizeReservationActivity" />
         <activity android:name=".DriverApp.DriverMainActivity" />
         <activity android:name=".DriverApp.SettingsFragment" />
@@ -41,6 +51,9 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" />
 
         <activity android:name=".Main.RegisterActivity" />
         <activity android:name=".Main.MainActivity">
