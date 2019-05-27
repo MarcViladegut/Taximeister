@@ -10,9 +10,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.Reservation;
-
 public class ReservationAdapter extends ArrayAdapter<Reservation> {
 
     public ReservationAdapter(Context context, ArrayList<Reservation> reservations) {

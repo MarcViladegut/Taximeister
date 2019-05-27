@@ -6,7 +6,6 @@ import android.content.pm.ActivityInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,13 +28,16 @@ import java.util.regex.Pattern;
 
 import eps.udl.cat.meistertaxi.Client;
 import eps.udl.cat.meistertaxi.Driver;
-import eps.udl.cat.meistertaxi.FirebaseCloudMessaging.MyService;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.User;
 
+import static eps.udl.cat.meistertaxi.Constants.DEFAULT_GENDER;
+import static eps.udl.cat.meistertaxi.Constants.DEFAULT_LICENCE;
+import static eps.udl.cat.meistertaxi.Constants.NONE;
+import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
+
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private FirebaseAuth mAuth;
     private EditText username;
     private EditText email;
     private EditText password;
@@ -43,7 +45,13 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     private Switch driver;
     private ProgressDialog progressDialog;
     private boolean mailExists;
-    private MyService mFMS;
+
+    private FirebaseAuth mAuth;
+    private FirebaseUser mCurrentUser;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference mUsersRef;
+
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,17 +63,20 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
 
         progressDialog = new ProgressDialog(this);
 
-        // Initialize Firebase Auth
+        /* Initialize Firebase Auth */
         mAuth = FirebaseAuth.getInstance();
-        mFMS = new MyService();
+        mCurrentUser = mAuth.getCurrentUser();
 
-        username = (EditText)findViewById(R.id.registerUsername);
-        email = (EditText)findViewById(R.id.registerEmail);
-        password = (EditText)findViewById(R.id.password);
-        confirmPassword = (EditText)findViewById(R.id.confimPassword);
-        driver = (Switch)findViewById(R.id.switch1);
+        mDatabase = FirebaseDatabase.getInstance();
+        mUsersRef = mDatabase.getReference(USERS_REFERENCE);
 
-        Button buttonCancel = (Button)findViewById(R.id.buttonCancel);
+        username = (EditText) findViewById(R.id.registerUsername);
+        email = (EditText) findViewById(R.id.registerEmail);
+        password = (EditText) findViewById(R.id.password);
+        confirmPassword = (EditText) findViewById(R.id.confimPassword);
+        driver = (Switch) findViewById(R.id.switch1);
+
+        Button buttonCancel = (Button) findViewById(R.id.buttonCancel);
         buttonCancel.setOnClickListener(this);
 
         Button buttonSubmit = (Button) findViewById(R.id.buttonSubmit);
@@ -82,116 +93,120 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 finish();
                 break;
             case R.id.buttonSubmit:
-                if (checkInformation()){
-                    progressDialog.setMessage("Registrando...");
+                /* Check if the fields on registration UI are correct */
+                if (checkInformation()) {
+                    progressDialog.setMessage(getString(R.string.sign_in_msg));
                     progressDialog.show();
-                    mAuth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
-                            .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    if (task.isSuccessful()) {
-                                        // Sign in success, update UI with the signed-in user's information
-                                        Log.d("auth", "createUserWithEmail:success");
-                                        Toast.makeText(getApplicationContext(), getString(R.string.account_created_text), Toast.LENGTH_LONG).show();
 
-                                        FirebaseInstanceId.getInstance().getInstanceId()
-                                                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                                                        if (!task.isSuccessful()) {
-                                                            Log.w("FirebaseError", "Instance id failed", task.getException());
-                                                            return;
-                                                        }
-                                                        String token = task.getResult().getToken();
-
-                                                        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-                                                        FirebaseDatabase database = FirebaseDatabase.getInstance();
-                                                        DatabaseReference myRef = database.getReference("users");
-
-                                                        User user = new User(username.getText().toString(), email.getText().toString());
-                                                        user.setToken(token);
-                                                        if (driver.isChecked()){
-                                                            user.setDriver(true);
-                                                            Driver driver = new Driver(user, 0);
-                                                            myRef.child(currentUser.getUid()).setValue(driver);
-                                                        } else {
-                                                            user.setDriver(false);
-                                                            Client client = new Client(user, 0);
-                                                            myRef.child(currentUser.getUid()).setValue(client);
-                                                        }
-
-                                                        mFMS.sendRegistrationToServer(token);
-                                                    }
-                                                });
-
-                                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                        progressDialog.dismiss();
-                                        startActivity(intent);
-                                        finish();
-                                    } else {
-                                        // If sign in fails, display a message to the user.
-                                        Log.w("auth", "createUserWithEmail:failure", task.getException());
-                                        progressDialog.dismiss();
-                                        Toast.makeText(getApplicationContext(), "Authentication failed.",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
+                    createUserWithEmail();
                 }
                 break;
         }
     }
 
-    private boolean checkInformation(){
+    private boolean checkInformation() {
         // Check an empty fields
-        if (username.getText().toString().equals("") || email.getText().toString().equals("") ||
-            password.getText().toString().equals("") || confirmPassword.getText().toString().equals("")){
-            Toast.makeText(getApplicationContext(), "They are an empty fields",
+        if (username.getText().toString().equals(NONE) || email.getText().toString().equals(NONE) ||
+                password.getText().toString().equals(NONE) || confirmPassword.getText().toString().equals(NONE)) {
+            Toast.makeText(getApplicationContext(), getString(R.string.blank_fields_msg),
                     Toast.LENGTH_SHORT).show();
             return false;
         }
 
         // Check the same password
-        if (!password.getText().toString().equals(confirmPassword.getText().toString())){
-            Toast.makeText(getApplicationContext(), "The passwords are not equals",
+        if (!password.getText().toString().equals(confirmPassword.getText().toString())) {
+            Toast.makeText(getApplicationContext(), getString(R.string.passwords_not_equals_msg),
                     Toast.LENGTH_SHORT).show();
             return false;
         }
 
-        if (password.getText().toString().length() < 6){
-            Toast.makeText(getApplicationContext(), "The password must have at least 6 characters",
+        /* Check the passwords more than 6 characters */
+        if (password.getText().toString().length() < 6) {
+            Toast.makeText(getApplicationContext(), getString(R.string.password_six_char_msg),
                     Toast.LENGTH_SHORT).show();
             return false;
         }
 
         // Check is the correct format on email
-        if (!isEmailValid(email.getText().toString())){
-            Toast.makeText(getApplicationContext(), "The email format is incorrect",
+        if (!isEmailValid(email.getText().toString())) {
+            Toast.makeText(getApplicationContext(), getString(R.string.incorrect_email_msg),
                     Toast.LENGTH_SHORT).show();
             return false;
         }
 
+        /* Check is the email is available on Firebase */
         mAuth.fetchSignInMethodsForEmail(email.getText().toString())
                 .addOnCompleteListener(new OnCompleteListener<SignInMethodQueryResult>() {
                     @Override
                     public void onComplete(@NonNull Task<SignInMethodQueryResult> task) {
                         if (!task.getResult().getSignInMethods().isEmpty()) {
-                            Toast.makeText(getApplicationContext(), "The email has been already exists",
+                            Toast.makeText(getApplicationContext(), getString(R.string.email_exists_msg),
                                     Toast.LENGTH_SHORT).show();
-                            mailExists=false;
+                            mailExists = false;
                         } else {
-                            mailExists=true;
+                            mailExists = true;
                         }
                     }
                 });
         return mailExists;
     }
 
-    private static boolean isEmailValid(String email){
+    private static boolean isEmailValid(String email) {
         String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
         Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
+    }
+
+    private void createUserWithEmail() {
+        mAuth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString())
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            requestFirebaseTokenAndSignIn();
+
+                            Toast.makeText(getApplicationContext(), getString(R.string.account_created_text), Toast.LENGTH_LONG).show();
+                            progressDialog.dismiss();
+
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Toast.makeText(getApplicationContext(), getString(R.string.auth_failed_msg),
+                                    Toast.LENGTH_SHORT).show();
+                            progressDialog.dismiss();
+                        }
+                    }
+                });
+    }
+
+    private void requestFirebaseTokenAndSignIn() {
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if (!task.isSuccessful())
+                            return;
+
+                        /* Create a user with token that serve to recieve a notifications */
+                        String token = task.getResult().getToken();
+
+                        mCurrentUser = mAuth.getCurrentUser();
+                        user = new User(username.getText().toString(), email.getText().toString());
+                        user.setToken(token);
+
+                        if (driver.isChecked()) {
+                            user.setDriver(true);
+                            Driver driver = new Driver(user, DEFAULT_LICENCE);
+                            mUsersRef.child(mCurrentUser.getUid()).setValue(driver);
+                        } else {
+                            user.setDriver(false);
+                            Client client = new Client(user, DEFAULT_GENDER);
+                            mUsersRef.child(mCurrentUser.getUid()).setValue(client);
+                        }
+                    }
+                });
     }
 }

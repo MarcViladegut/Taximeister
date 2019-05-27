@@ -4,7 +4,6 @@ import android.content.pm.ActivityInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -21,6 +20,8 @@ import java.util.ArrayList;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
 import eps.udl.cat.meistertaxi.ReservationAdapter;
+
+import static eps.udl.cat.meistertaxi.Constants.RESERVATION_REFERENCE;
 
 public class ReservationActivity extends AppCompatActivity {
 
@@ -42,7 +43,7 @@ public class ReservationActivity extends AppCompatActivity {
         userLogin = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
 
-        DatabaseReference ref = database.getReference("reservations").child(userLogin.getUid());
+        DatabaseReference ref = database.getReference(RESERVATION_REFERENCE).child(userLogin.getUid());
 
         // Create a list data which will be displayed in inner ListView.
         listData = new ArrayList<>();
@@ -50,7 +51,6 @@ public class ReservationActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot val : dataSnapshot.getChildren()){
-                    Log.i("informacio", val.toString());
                     Reservation reservation = val.getValue(Reservation.class);
                     listData.add(reservation);
                 }
@@ -64,7 +64,8 @@ public class ReservationActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getApplicationContext(), "It's not possible to load a reservations", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -1,11 +1,11 @@
 package eps.udl.cat.meistertaxi.DriverApp;
 
 import android.os.Bundle;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -19,9 +19,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
-import eps.udl.cat.meistertaxi.Client;
 import eps.udl.cat.meistertaxi.Driver;
 import eps.udl.cat.meistertaxi.R;
+
+import static eps.udl.cat.meistertaxi.Constants.DRIVER_LICENCE_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.DRIVER_NAME_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.DRIVER_SMOKE_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.DRIVER_SURNAME_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
 
 public class SettingsFragment extends AppCompatPreferenceActivity {
 
@@ -38,16 +43,16 @@ public class SettingsFragment extends AppCompatPreferenceActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
 
         FirebaseUser userLogin = mAuth.getCurrentUser();
-        DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+        DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(userLogin.getUid());
         usersRef.addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Driver userRead = dataSnapshot.getValue(Driver.class);
-                Preference userPref = findPreference("driver_name");
-                Preference surnamePref = findPreference("driver_surname");
-                Preference licencePref = findPreference("driver_licence");
-                Preference smokePref = findPreference("driver_smoke");
+                Preference userPref = findPreference(DRIVER_NAME_PREFERENCE);
+                Preference surnamePref = findPreference(DRIVER_SURNAME_PREFERENCE);
+                Preference licencePref = findPreference(DRIVER_LICENCE_PREFERENCE);
+                Preference smokePref = findPreference(DRIVER_SMOKE_PREFERENCE);
 
                 userPref.setSummary(userRead.getName());
                 surnamePref.setSummary(userRead.getSurname());
@@ -56,13 +61,16 @@ public class SettingsFragment extends AppCompatPreferenceActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { }
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
+                        Toast.LENGTH_SHORT).show();
+            }
         });
 
-        bindPreferenceSummaryToValue(findPreference("driver_name"));
-        bindPreferenceSummaryToValue(findPreference("driver_surname"));
-        bindPreferenceSummaryToValue(findPreference("driver_licence"));
-        bindPreferenceSummaryToBoolean(findPreference("driver_smoke"));
+        bindPreferenceSummaryToValue(findPreference(DRIVER_NAME_PREFERENCE));
+        bindPreferenceSummaryToValue(findPreference(DRIVER_SURNAME_PREFERENCE));
+        bindPreferenceSummaryToValue(findPreference(DRIVER_LICENCE_PREFERENCE));
+        bindPreferenceSummaryToBoolean(findPreference(DRIVER_SMOKE_PREFERENCE));
     }
 
     private void setupActionBar() {
@@ -89,7 +97,7 @@ public class SettingsFragment extends AppCompatPreferenceActivity {
             database = FirebaseDatabase.getInstance();
 
             FirebaseUser userLogin = mAuth.getCurrentUser();
-            DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+            DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(userLogin.getUid());
             usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
 
                 @Override
@@ -107,19 +115,19 @@ public class SettingsFragment extends AppCompatPreferenceActivity {
 
         private void updateUI(Preference preferenceChanged) {
             switch (preferenceChanged.getKey()){
-                case "driver_name":
+                case DRIVER_NAME_PREFERENCE:
                     userRead.setName(stringValue);
                     preferenceChanged.setSummary(stringValue);
                     break;
-                case "driver_surname":
+                case DRIVER_SURNAME_PREFERENCE:
                     userRead.setSurname(stringValue);
                     preferenceChanged.setSummary(stringValue);
                     break;
-                case "driver_licence":
+                case DRIVER_LICENCE_PREFERENCE:
                     userRead.setLicence(Long.parseLong(stringValue));
                     preferenceChanged.setSummary(stringValue);
                     break;
-                case "driver_smoke":
+                case DRIVER_SMOKE_PREFERENCE:
                     if (stringValue.equals("true")){
                         userRead.setSmoke(true);
                         preferenceChanged.setSummary(R.string.yes_text);
@@ -132,7 +140,7 @@ public class SettingsFragment extends AppCompatPreferenceActivity {
                     preferenceChanged.setSummary(stringValue);
             }
 
-            if (preferenceChanged.getKey().equals("driver_smoke")){
+            if (preferenceChanged.getKey().equals(DRIVER_SMOKE_PREFERENCE)){
                 if (preferenceChanged.equals("true"))
                     preferenceChanged.setSummary(R.string.yes_text);
                 else
@@ -142,7 +150,7 @@ public class SettingsFragment extends AppCompatPreferenceActivity {
 
             Map<String, Object> childUpdates = new HashMap<>();
             childUpdates.put(mAuth.getUid(), userRead.toMap());
-            database.getReference("users").updateChildren(childUpdates);
+            database.getReference(USERS_REFERENCE).updateChildren(childUpdates);
         }
     };
 

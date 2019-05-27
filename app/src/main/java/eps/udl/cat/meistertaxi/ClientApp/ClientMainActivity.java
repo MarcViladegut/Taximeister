@@ -79,14 +79,21 @@ import java.util.List;
 import java.util.Objects;
 
 import eps.udl.cat.meistertaxi.Client;
-import eps.udl.cat.meistertaxi.Driver;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
 import eps.udl.cat.meistertaxi.Route;
 import eps.udl.cat.meistertaxi.User;
 
+import static eps.udl.cat.meistertaxi.Constants.APP_NAME;
+import static eps.udl.cat.meistertaxi.Constants.CURRENCY_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.GOOGLE_API_DIRECTION;
+import static eps.udl.cat.meistertaxi.Constants.NONE;
+import static eps.udl.cat.meistertaxi.Constants.RESERVATION_REFERENCE;
 import static eps.udl.cat.meistertaxi.Constants.SPACE;
+import static eps.udl.cat.meistertaxi.Constants.STYLE_MAP_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.TRANSIT_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
 
 public class ClientMainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -95,7 +102,7 @@ public class ClientMainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMapClickListener {
 
-    // PayPal
+    /* PayPal configuration */
     private static PayPalConfiguration config = new PayPalConfiguration()
             .environment(PayPalConfiguration.ENVIRONMENT_NO_NETWORK)
             .clientId(Integer.toString(R.string.client_id_paypal));
@@ -124,9 +131,12 @@ public class ClientMainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.navigation_drawer_menu);
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         progressBar.setVisibility(View.INVISIBLE);
+
         checkLocationPermission();
 
         MarkerPoints = new ArrayList<>();
@@ -152,15 +162,15 @@ public class ClientMainActivity extends AppCompatActivity
         estimatedCost = findViewById(R.id.reservation_fragment);
         estimatedCost.setVisibility(View.GONE);
 
-        // Initialize a PayPal Services
+        /* Initialize a PayPal Services */
         Intent intent = new Intent(this, PayPalService.class);
         intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
         startService(intent);
 
-        // Initialize route
+        /* Initialize a new route */
         route = new Route();
 
-        // Initialize Firebase
+        /* Firebase instances */
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
@@ -205,9 +215,9 @@ public class ClientMainActivity extends AppCompatActivity
     @SuppressLint({"SetTextI18n", "DefaultLocale"})
     private void updateMap() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean traffic = sharedPreferences.getBoolean("transit", false);
-        String style = sharedPreferences.getString("styleMap", "");
-        String currency = sharedPreferences.getString("currency", "");
+        boolean traffic = sharedPreferences.getBoolean(TRANSIT_PREFERENCE, false);
+        String style = sharedPreferences.getString(STYLE_MAP_PREFERENCE, NONE);
+        String currency = sharedPreferences.getString(CURRENCY_PREFERENCE, NONE);
         TextView cost = findViewById(R.id.costValue);
 
         // Update a style map
@@ -256,7 +266,7 @@ public class ClientMainActivity extends AppCompatActivity
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         FirebaseUser userLogin = mAuth.getCurrentUser();
-        DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+        DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(userLogin.getUid());
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -337,7 +347,7 @@ public class ClientMainActivity extends AppCompatActivity
             progressBar.setVisibility(View.VISIBLE);
             // Getting URL to the Google Directions API
             String url = getUrl(route.getOrigin(), route.getDestination());
-            Log.d("onMapClick", url);
+
             FetchUrl FetchUrl = new FetchUrl();
 
             // Start downloading json data from Google Directions API
@@ -368,7 +378,7 @@ public class ClientMainActivity extends AppCompatActivity
         String output = "json";
 
         // Building the url to the web service
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
+        String url = GOOGLE_API_DIRECTION + output + "?" + parameters;
         Log.i("URL", url);
 
         return url;
@@ -487,23 +497,16 @@ public class ClientMainActivity extends AppCompatActivity
                 route.setDuration(parser.duration);
 
                 reservation = new Reservation(route, Calendar.getInstance().getTimeInMillis());
-                date.setText(reservation.getDateToString());
-                /*Calendar dateTime = reservation.getDateTime();
-                int month = dateTime.get(Calendar.MONTH) + 1;
-                date.setText(dateTime.get(Calendar.DAY_OF_MONTH) + "/" +
-                        ((month < 10) ? ("0" + month) : month) + "/" + dateTime.get(Calendar.YEAR));*/
 
+                date.setText(reservation.getDateToString());
                 hour.setText(reservation.getTimeToString());
-                /*int hourOfDay = dateTime.get(Calendar.HOUR_OF_DAY);
-                int minuteOfDay = dateTime.get(Calendar.MINUTE);
-                hour.setText(((hourOfDay < 10) ? "0" + hourOfDay : hourOfDay) + ":" +
-                        ((minuteOfDay < 10) ? "0" + minuteOfDay : minuteOfDay));*/
+
                 distance.setText(parser.distance);
                 duration.setText(parser.duration);
 
                 String currency = PreferenceManager
                         .getDefaultSharedPreferences(getApplicationContext())
-                        .getString("currency", "");
+                        .getString(CURRENCY_PREFERENCE, NONE);
 
                 if (currency != null)
                     switch (currency) {
@@ -726,7 +729,7 @@ public class ClientMainActivity extends AppCompatActivity
 
         String currency = PreferenceManager
                 .getDefaultSharedPreferences(getApplicationContext())
-                .getString("currency", "");
+                .getString(CURRENCY_PREFERENCE, NONE);
         String payPalText = "EUR";
         double cost = reservation.getCost();
 
@@ -743,7 +746,7 @@ public class ClientMainActivity extends AppCompatActivity
             }
 
         PayPalPayment payment = new PayPalPayment(new BigDecimal(Double.toString(cost)),
-                payPalText, "MisterTaxi", PayPalPayment.PAYMENT_INTENT_SALE);
+                payPalText, APP_NAME, PayPalPayment.PAYMENT_INTENT_SALE);
 
         Intent intent = new Intent(this, PaymentActivity.class);
 
@@ -775,7 +778,7 @@ public class ClientMainActivity extends AppCompatActivity
                 PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
                 if (confirm != null) {
                     try {
-                        final DatabaseReference ref = database.getReference("reservations").child("numReservation");
+                        final DatabaseReference ref = database.getReference(RESERVATION_REFERENCE).child("numReservation");
                         ref.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -801,7 +804,7 @@ public class ClientMainActivity extends AppCompatActivity
                                 reservation.setDestinationToString(getApplicationContext());
 
                                 FirebaseDatabase database = FirebaseDatabase.getInstance();
-                                DatabaseReference myRef = database.getReference("reservations");
+                                DatabaseReference myRef = database.getReference(RESERVATION_REFERENCE);
 
                                 // Assign reservation to client
                                 myRef.child(currentUser.getUid()).child(Integer.toString(reservation.getIdReservation())).setValue(reservation);
@@ -812,11 +815,12 @@ public class ClientMainActivity extends AppCompatActivity
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                                Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
+                                        Toast.LENGTH_SHORT).show();
                             }
 
                             private void assignReservationToDriver(){
-                                DatabaseReference myRef = database.getReference("users");
+                                DatabaseReference myRef = database.getReference(USERS_REFERENCE);
                                 myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -825,7 +829,7 @@ public class ClientMainActivity extends AppCompatActivity
                                         for (DataSnapshot val : dataSnapshot.getChildren()) {
                                             User user = val.getValue(User.class);
                                             if (user.isDriver() && assigned == false) {
-                                                DatabaseReference refReservation = database.getReference("reservations");
+                                                DatabaseReference refReservation = database.getReference(RESERVATION_REFERENCE);
                                                 refReservation.child(val.getKey()).child(Integer.toString(reservation.getIdReservation())).setValue(reservation);
                                                 assigned = true;
                                             }
@@ -834,7 +838,8 @@ public class ClientMainActivity extends AppCompatActivity
 
                                     @Override
                                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                                        Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
+                                                Toast.LENGTH_SHORT).show();
                                     }
                                 });
                             }
@@ -853,10 +858,8 @@ public class ClientMainActivity extends AppCompatActivity
                 }
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 Toast.makeText(this, "The user canceled", Toast.LENGTH_LONG).show();
-                Log.i("paymentExample", "The user canceled.");
             } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
                 Toast.makeText(this, "An invalid Payment or PayPalConfiguration was submitted. Please see the docs", Toast.LENGTH_LONG).show();
-                Log.i("paymentExample", "An invalid Payment or PayPalConfiguration was submitted. Please see the docs.");
             }
         } else {
             if (resultCode == Activity.RESULT_OK) {

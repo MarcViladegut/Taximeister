@@ -3,16 +3,15 @@ package eps.udl.cat.meistertaxi.FirebaseCloudMessaging;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -33,8 +32,11 @@ import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.User;
 
+import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
+
 public class MyService extends FirebaseMessagingService {
     private static final String TAG = "MyFirebaseMsgService";
+
     private FirebaseAuth mAuth;
     private FirebaseDatabase database;
 
@@ -108,7 +110,7 @@ public class MyService extends FirebaseMessagingService {
         database = FirebaseDatabase.getInstance();
 
         FirebaseUser userLogin = mAuth.getCurrentUser();
-        DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+        DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(userLogin.getUid());
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -125,11 +127,14 @@ public class MyService extends FirebaseMessagingService {
                     client.setToken(token);
                     childUpdates.put(mAuth.getUid(), client.toMap());
                 }
-                database.getReference("users").updateChildren(childUpdates);
+                database.getReference(USERS_REFERENCE).updateChildren(childUpdates);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { }
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
+                        Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

@@ -14,6 +14,7 @@ import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -30,7 +31,16 @@ import java.util.Map;
 import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
 import eps.udl.cat.meistertaxi.Client;
 import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.User;
+
+import static eps.udl.cat.meistertaxi.Constants.CURRENCY_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.GENDER_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.NONE;
+import static eps.udl.cat.meistertaxi.Constants.SMOKE_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.STYLE_MAP_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.SURNAME_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.TRANSIT_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.USERNAME_PREFERENCE;
+import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -66,7 +76,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             database = FirebaseDatabase.getInstance();
 
             FirebaseUser userLogin = mAuth.getCurrentUser();
-            DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+            DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(userLogin.getUid());
             usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
 
                 @Override
@@ -87,7 +97,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 ListPreference listPreference = (ListPreference) preferenceChanged;
                 int index = listPreference.findIndexOfValue(stringValue);
 
-                if (preferenceChanged.getKey().equals("gender"))
+                if (preferenceChanged.getKey().equals(GENDER_PREFERENCE))
                     userRead.setGender(index);
 
                 // Set the summary to reflect the new value.
@@ -95,15 +105,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             } else {
                 switch (preferenceChanged.getKey()){
-                    case "username":
+                    case USERNAME_PREFERENCE:
                         userRead.setName(stringValue);
                         preferenceChanged.setSummary(stringValue);
                         break;
-                    case "surname":
+                    case SURNAME_PREFERENCE:
                         userRead.setSurname(stringValue);
                         preferenceChanged.setSummary(stringValue);
                         break;
-                    case "smoke":
+                    case SMOKE_PREFERENCE:
                         if (stringValue.equals("true")){
                             userRead.setSmoke(true);
                             preferenceChanged.setSummary(R.string.yes_text);
@@ -112,7 +122,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             preferenceChanged.setSummary(R.string.no_text);
                         }
                         break;
-                    case "transit":
+                    case TRANSIT_PREFERENCE:
                         if (stringValue.equals("true"))
                             preferenceChanged.setSummary(R.string.yes_text);
                         else
@@ -126,7 +136,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             Map<String, Object> childUpdates = new HashMap<>();
             childUpdates.put(mAuth.getUid(), userRead.toMap());
-            database.getReference("users").updateChildren(childUpdates);
+            database.getReference(USERS_REFERENCE).updateChildren(childUpdates);
         }
     };
 
@@ -156,7 +166,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
                 PreferenceManager
                         .getDefaultSharedPreferences(preference.getContext())
-                        .getString(preference.getKey(), ""));
+                        .getString(preference.getKey(), NONE));
     }
 
     private static void bindPreferenceSummaryToBoolean(Preference preference) {
@@ -227,7 +237,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             addPreferencesFromResource(R.xml.pref_general);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference("currency"));
+            bindPreferenceSummaryToValue(findPreference(CURRENCY_PREFERENCE));
         }
 
         @Override
@@ -257,16 +267,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             FirebaseDatabase database = FirebaseDatabase.getInstance();
 
             FirebaseUser userLogin = mAuth.getCurrentUser();
-            DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+            DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(userLogin.getUid());
             usersRef.addValueEventListener(new ValueEventListener() {
 
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     Client userRead = dataSnapshot.getValue(Client.class);
-                    Preference userPref = findPreference("username");
-                    Preference surnamePref = findPreference("surname");
-                    Preference genderPref = findPreference("gender");
-                    Preference smokePref = findPreference("smoke");
+                    Preference userPref = findPreference(USERNAME_PREFERENCE);
+                    Preference surnamePref = findPreference(SURNAME_PREFERENCE);
+                    Preference genderPref = findPreference(GENDER_PREFERENCE);
+                    Preference smokePref = findPreference(SMOKE_PREFERENCE);
 
                     userPref.setSummary(userRead.getName());
                     surnamePref.setSummary(userRead.getSurname());
@@ -276,13 +286,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 }
 
                 @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) { }
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(getContext(), getString(R.string.error_read_database_msg),
+                            Toast.LENGTH_SHORT).show();
+                }
             });
 
-            bindPreferenceSummaryToValue(findPreference("username"));
-            bindPreferenceSummaryToValue(findPreference("surname"));
-            bindPreferenceSummaryToValue(findPreference("gender"));
-            bindPreferenceSummaryToBoolean(findPreference("smoke"));
+            bindPreferenceSummaryToValue(findPreference(USERNAME_PREFERENCE));
+            bindPreferenceSummaryToValue(findPreference(SURNAME_PREFERENCE));
+            bindPreferenceSummaryToValue(findPreference(GENDER_PREFERENCE));
+            bindPreferenceSummaryToBoolean(findPreference(SMOKE_PREFERENCE));
         }
 
         @Override
@@ -308,8 +321,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             addPreferencesFromResource(R.xml.pref_map);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference("styleMap"));
-            bindPreferenceSummaryToBoolean(findPreference("transit"));
+            bindPreferenceSummaryToValue(findPreference(STYLE_MAP_PREFERENCE));
+            bindPreferenceSummaryToBoolean(findPreference(TRANSIT_PREFERENCE));
         }
 
         @Override

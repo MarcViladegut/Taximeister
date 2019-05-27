@@ -1,20 +1,20 @@
 <resources>
-    <string name="app_name">Meistertaxi</string>
+    <string name="app_name" translatable="false">Meistertaxi</string>
     <string name="text_button_login">Sign In</string>
     <string name="hint_editText_password">Password</string>
     <string name="hint_editText_usuari">Username</string>
     <string name="text_button_newUser">Sign Up</string>
     <string name="text_name_register_activity">New account</string>
     <string name="Username">Name of the user</string>
-    <string name="textEmail">Email</string>
+    <string name="textEmail" translatable="false">Email</string>
     <string name="text_forgot_password">Forgot password?</string>
     <string name="text_submit">Submit</string>
     <string name="text_cancel">Cancel</string>
     <string name="title_activity_maps">Map</string>
-    <string name="map_not_ready">El mapa no està preparat</string>
-    <string name="title_activity_menu_map">MenuMapActivity</string>
-    <string name="nav_header_title">Alvaro Ortega Marmol</string>
-    <string name="nav_header_subtitle">aom8@alumnes.udl.com</string>
+    <string name="map_not_ready">The map is not ready</string>
+    <string name="title_activity_menu_map" translatable="false">MenuMapActivity</string>
+    <string name="nav_header_title" translatable="false">#### #########</string>
+    <string name="nav_header_subtitle" translatable="false">####@#######.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">Settings</string>
@@ -24,8 +24,8 @@
     <string name="pref_header_account">Account</string>
     <string name="pref_header_map">Map</string>
 
-    <string name="pref_default_display_name">John</string>
-    <string name="pref_default_display_surname">Smith</string>
+    <string name="pref_default_display_name">name</string>
+    <string name="pref_default_display_surname">surname</string>
 
     <string name="Gender_text">Gender</string>
     <string-array name="Gender_list">
@@ -114,9 +114,9 @@
     <string name="customize_hour">Customize hour</string>
     <string name="you_can_modify_this_parameters">You can modify this parameters:</string>
     <string name="avatar_taxi_driver">Avatar taxi driver</string>
-    <string name="name_driver_default" translatable="false">Paco Flores Cantizano</string>
+    <string name="name_driver_default" translatable="false">#### #########</string>
     <string name="licence_text">Licence:</string>
-    <string name="licence_default_value" translatable="false">L78248812</string>
+    <string name="licence_default_value" translatable="false">##########</string>
     <string name="configuration_button">Configuration button</string>
     <string name="disconnect_button">Disconnect button</string>
     <string name="the_app_logo">The app logo</string>
@@ -138,6 +138,21 @@
     <string name="date_reservation" translatable="false">%s</string>
     <string name="hour_reservation" translatable="false">%s</string>
     <string name="default_notification_channel_id" translatable="false">default_channel</string>
-    <string name="default_notification_channel_name">Welcome notification</string>
-    <string name="msg_token_fmt">Queda 1 hora para que llegue tu taxi!</string>
+    <string name="blank_fields_msg">There are a blank fields</string>
+    <string name="sign_in_msg">Sign In</string>
+    <string name="passwords_not_equals_msg">The passwords are not equals</string>
+    <string name="password_six_char_msg">The password must have at least 6 characters</string>
+    <string name="incorrect_email_msg">The email format is incorrect</string>
+    <string name="email_exists_msg">The email has been already exists</string>
+    <string name="auth_failed_msg">Authentication failed</string>
+    <string name="log_in_msg">Log In</string>
+    <string name="error_read_database_msg">Error to read from Database</string>
+    <string name="destination_text">Destination:</string>
+    <string name="date">Date:</string>
+    <string name="hour_text">Hour:</string>
+    <string name="default_hour" translatable="false">##:##</string>
+    <string name="default_date" translatable="false">##/##/####</string>
+    <string name="default_text_res" translatable="false">#############</string>
+    <string name="origin_text">Origin:</string>
+    <string name="id_reservation_text">Id reservation:</string>
 </resources>

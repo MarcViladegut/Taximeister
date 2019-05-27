@@ -5,9 +5,7 @@ import android.content.pm.ActivityInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -30,10 +28,11 @@ import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.Reservation;
 import eps.udl.cat.meistertaxi.ReservationAdapter;
-import eps.udl.cat.meistertaxi.User;
 
 import static eps.udl.cat.meistertaxi.Constants.BAR;
+import static eps.udl.cat.meistertaxi.Constants.RESERVATION_REFERENCE;
 import static eps.udl.cat.meistertaxi.Constants.SPACE;
+import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
 import static eps.udl.cat.meistertaxi.Constants.ZERO;
 
 public class DriverMainActivity extends AppCompatActivity {
@@ -55,25 +54,24 @@ public class DriverMainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         getSupportActionBar().hide();
 
-        // Initialize Firebase
+        /* Initialize Firebase */
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
 
-        // Initialize a components
+        /* Initialize a components */
         nameDriver = (TextView)findViewById(R.id.nameTaxiDriver);
         licenceDriver = (TextView)findViewById(R.id.licenceNum);
 
-        // Configuración del listView para las reservas de cada dia del calendario
-        DatabaseReference ref = database.getReference("reservations").child(currentUser.getUid());
+        /* Configuración del listView para las reservas de cada dia del calendario */
         CalendarView calendarView = (CalendarView)findViewById(R.id.calendarView);
-
         calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
                 updateListReservations(year, month, dayOfMonth);
             }
         });
+
         Calendar calendar = Calendar.getInstance();
         updateListReservations(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
@@ -100,7 +98,7 @@ public class DriverMainActivity extends AppCompatActivity {
     }
 
     private void updateListReservations(int year, int month, int dayOfMonth){
-        DatabaseReference ref = database.getReference("reservations").child(currentUser.getUid());
+        DatabaseReference ref = database.getReference(RESERVATION_REFERENCE).child(currentUser.getUid());
         listData = new ArrayList<>();
         final String dataReservation = ((dayOfMonth < 10) ? (ZERO + dayOfMonth) : dayOfMonth) + BAR +
                 ((month < 10) ? (ZERO + (month + 1)) : (month + 1)) + BAR + year;
@@ -123,7 +121,8 @@ public class DriverMainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getApplicationContext(), "It's not possible to load a reservations", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -135,7 +134,7 @@ public class DriverMainActivity extends AppCompatActivity {
     }
 
     private void updateProfileDriver(){
-        DatabaseReference usersRef = database.getReference("users").child(currentUser.getUid());
+        DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(currentUser.getUid());
         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -149,7 +148,7 @@ public class DriverMainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getApplicationContext(), "Error to update a profile",
+                Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
                         Toast.LENGTH_SHORT).show();
             }
         });

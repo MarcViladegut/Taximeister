@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -32,12 +31,17 @@ import eps.udl.cat.meistertaxi.DriverApp.DriverMainActivity;
 import eps.udl.cat.meistertaxi.R;
 import eps.udl.cat.meistertaxi.User;
 
+import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private FirebaseAuth mAuth;
     private EditText email;
     private EditText password;
     private ProgressDialog progressDialog;
+
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase database;
+    private FirebaseUser userLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().hide();
 
         mAuth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance();
 
         progressDialog = new ProgressDialog(this);
 
@@ -74,8 +79,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 finish();
                 break;
             case R.id.buttonLogin:
+                /* Check if there are a blank field on login UI */
                 if (email.getText().toString().isEmpty() || password.getText().toString().isEmpty())
-                    Toast.makeText(getApplicationContext(), "There are a blank fields",
+                    Toast.makeText(getApplicationContext(), getString(R.string.blank_fields_msg),
                             Toast.LENGTH_SHORT).show();
                 else
                     logIn(email.getText().toString(), password.getText().toString());
@@ -95,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         Toast.LENGTH_LONG).show();
                             }
                         })
-
                         .setNegativeButton(R.string.text_cancel,
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialogBox, int id) {
@@ -110,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void logIn(String email, String password) {
-        progressDialog.setMessage("Iniciando sessión");
+        progressDialog.setMessage(getString(R.string.log_in_msg));
         progressDialog.show();
 
         mAuth.signInWithEmailAndPassword(email, password)
@@ -118,39 +123,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Check is the client user o driver user
-                            FirebaseDatabase database = FirebaseDatabase.getInstance();
-                            FirebaseUser userLogin = mAuth.getCurrentUser();
-                            DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+                            /* Check is the client user o driver user for enter on each interface */
+                            userLogin = mAuth.getCurrentUser();
+                            DatabaseReference usersRef = database.getReference(USERS_REFERENCE).child(userLogin.getUid());
                             usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    Intent i;
                                     User userRead = dataSnapshot.getValue(User.class);
+
+                                    Intent i;
                                     if (userRead.isDriver())
                                         i = new Intent(getApplicationContext(), DriverMainActivity.class);
                                     else
                                         i = new Intent(getApplicationContext(), ClientMainActivity.class);
+
                                     progressDialog.dismiss();
                                     startActivity(i);
                                     finish();
-                                    // Sign in success, update UI with the signed-in user's information
-                                    Log.d("auth", "signInWithEmail:success");
                                 }
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
                                     progressDialog.dismiss();
-                                    Toast.makeText(getApplicationContext(), "Error to read from Database",
+                                    Toast.makeText(getApplicationContext(), getString(R.string.error_read_database_msg),
                                             Toast.LENGTH_SHORT).show();
                                 }
                             });
                         } else {
-                            progressDialog.dismiss();
                             // If sign in fails, display a message to the user.
-                            Log.w("auth", "signInWithEmail:failure", task.getException());
-                            Toast.makeText(getApplicationContext(), "Authentication failed",
+                            Toast.makeText(getApplicationContext(), getString(R.string.auth_failed_msg),
                                     Toast.LENGTH_SHORT).show();
+                            progressDialog.dismiss();
                         }
                     }
                 });

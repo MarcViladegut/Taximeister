@@ -120,6 +120,7 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
         }
     }
 
+    /* Customize a date to reservation */
     private void obtainDateValue(){
         DatePickerDialog date = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @SuppressLint("SetTextI18n")
@@ -146,6 +147,7 @@ public class CustomizeReservationActivity extends AppCompatActivity implements V
         date.show();
     }
 
+    /* Customize a time to reservation */
     private void obtainTimeValue(){
         TimePickerDialog time = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
             @SuppressLint("SetTextI18n")
