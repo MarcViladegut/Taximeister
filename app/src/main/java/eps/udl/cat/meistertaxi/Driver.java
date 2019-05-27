@@ -9,7 +9,7 @@ public class Driver extends User {
     public Driver(){ }
 
     public Driver(User user, long licence) {
-        super(user.getName(), user.getEmail(), user.isDriver());
+        super(user.getName(), user.getEmail(), user.isDriver(), user.getToken());
         this.licence = licence;
     }
 
@@ -21,6 +21,7 @@ public class Driver extends User {
         this.licence = licence;
     }
 
+    /* Method to update information on database */
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("name", this.getName());
@@ -29,6 +30,7 @@ public class Driver extends User {
         result.put("smoke", this.isSmoke());
         result.put("driver", this.isDriver());
         result.put("licence", this.getLicence());
+        result.put("token", this.getToken());
 
         return result;
     }

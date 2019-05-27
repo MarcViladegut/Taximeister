@@ -10,17 +10,33 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import eps.udl.cat.meistertaxi.Client;
+import eps.udl.cat.meistertaxi.Driver;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
+import eps.udl.cat.meistertaxi.User;
 
 public class MyService extends FirebaseMessagingService {
     private static final String TAG = "MyFirebaseMsgService";
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase database;
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -84,6 +100,36 @@ public class MyService extends FirebaseMessagingService {
     }
 
     public void sendRegistrationToServer(String token) {
+        saveOnDatabase(token);
+    }
 
+    public void saveOnDatabase(final String token){
+        mAuth = FirebaseAuth.getInstance();
+        database = FirebaseDatabase.getInstance();
+
+        FirebaseUser userLogin = mAuth.getCurrentUser();
+        DatabaseReference usersRef = database.getReference("users").child(userLogin.getUid());
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Map<String, Object> childUpdates = new HashMap<>();
+                User userRead = dataSnapshot.getValue(User.class);
+                if (userRead.isDriver()){
+                    Driver driver;
+                    driver = dataSnapshot.getValue(Driver.class);
+                    driver.setToken(token);
+                    childUpdates.put(mAuth.getUid(), driver.toMap());
+                } else {
+                    Client client;
+                    client = dataSnapshot.getValue(Client.class);
+                    client.setToken(token);
+                    childUpdates.put(mAuth.getUid(), client.toMap());
+                }
+                database.getReference("users").updateChildren(childUpdates);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) { }
+        });
     }
 }

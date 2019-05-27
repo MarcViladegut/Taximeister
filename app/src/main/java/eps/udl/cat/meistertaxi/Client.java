@@ -9,7 +9,7 @@ public class Client extends User {
     public Client() { }
 
     public Client(User user, int gender) {
-        super(user.getName(), user.getEmail(), user.isDriver());
+        super(user.getName(), user.getEmail(), user.isDriver(), user.getToken());
         this.gender = gender;
     }
 
@@ -21,6 +21,7 @@ public class Client extends User {
         this.gender = gender;
     }
 
+    /* Method to update information on database */
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("name", this.getName());
@@ -29,6 +30,7 @@ public class Client extends User {
         result.put("gender", gender);
         result.put("driver", this.isDriver());
         result.put("smoke", this.isSmoke());
+        result.put("token", this.getToken());
 
         return result;
     }

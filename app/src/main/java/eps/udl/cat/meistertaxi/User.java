@@ -7,6 +7,7 @@ public class User {
     private String email;
     private boolean smoke;
     private boolean driver;
+    private String token;
 
     public User(String name, String email) {
         this.name = name;
@@ -21,6 +22,16 @@ public class User {
         this.email = email;
         this.smoke = false;
         this.driver = driver;
+        this.token = "";
+    }
+
+    public User(String name, String email, boolean driver, String token) {
+        this.name = name;
+        this.surname = "";
+        this.email = email;
+        this.smoke = false;
+        this.driver = driver;
+        this.token = token;
     }
 
     public User(){}
@@ -63,5 +74,13 @@ public class User {
 
     public void setDriver(boolean driver) {
         this.driver = driver;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }
