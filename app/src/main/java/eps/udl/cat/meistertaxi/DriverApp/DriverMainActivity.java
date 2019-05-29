@@ -111,10 +111,6 @@ public class DriverMainActivity extends AppCompatActivity {
                     if (reservation.getDateToString().equals(dataReservation))
                         listData.add(reservation);
                 }
-                if (listData.size()==0){
-                    Toast.makeText(getApplicationContext(), getString(R.string.no_reservations),
-                            Toast.LENGTH_SHORT).show();
-                }
                 // Create the ArrayAdapter use the item row layout and the list data.
                 ReservationAdapter reservationAdapter = new ReservationAdapter(getApplicationContext(), listData);
 

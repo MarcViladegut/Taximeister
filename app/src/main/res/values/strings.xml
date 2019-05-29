@@ -155,5 +155,4 @@
     <string name="default_text_res" translatable="false">#############</string>
     <string name="origin_text">Origin:</string>
     <string name="id_reservation_text">Id reservation:</string>
-    <string name="no_reservations">No reservations for this day</string>
 </resources>
