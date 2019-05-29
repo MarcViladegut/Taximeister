@@ -129,4 +129,5 @@
     <string name="hour_text">Hora:</string>
     <string name="origin_text">Origen:</string>
     <string name="id_reservation_text">Id reserva:</string>
+    <string name="no_reservations">No existeixen reserves per aquest dia</string>
 </resources>
