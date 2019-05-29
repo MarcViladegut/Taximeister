@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "684487525667",
+    "firebase_url": "https://meistertaxi-d84d8.firebaseio.com",
+    "project_id": "meistertaxi-d84d8",
+    "storage_bucket": "meistertaxi-d84d8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684487525667:android:b32c09ff224df1d9",
+        "android_client_info": {
+          "package_name": "eps.udl.cat.meistertaxi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "684487525667-lcp7k0ov7nbf2k6r525ghotuik5mlj83.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "eps.udl.cat.meistertaxi",
+            "certificate_hash": "4c77e06051ea7840d397a3ad59dba94d7f435299"
+          }
+        },
+        {
+          "client_id": "684487525667-o95g9609c1ujj9aqvve88ji92v25jf7a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-kDAIpkrJP7u-PWFdiY7ZIV7IYfvklr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "684487525667-o95g9609c1ujj9aqvve88ji92v25jf7a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
