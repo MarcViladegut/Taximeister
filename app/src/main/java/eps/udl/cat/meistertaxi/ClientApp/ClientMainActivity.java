@@ -78,12 +78,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import eps.udl.cat.meistertaxi.Client;
+import eps.udl.cat.meistertaxi.Models.Client;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.Reservation;
-import eps.udl.cat.meistertaxi.Route;
-import eps.udl.cat.meistertaxi.User;
+import eps.udl.cat.meistertaxi.Models.Reservation;
+import eps.udl.cat.meistertaxi.Models.Route;
+import eps.udl.cat.meistertaxi.Models.User;
 
 import static eps.udl.cat.meistertaxi.Constants.APP_NAME;
 import static eps.udl.cat.meistertaxi.Constants.CURRENCY_PREFERENCE;

@@ -26,11 +26,11 @@ import com.google.firebase.messaging.RemoteMessage;
 import java.util.HashMap;
 import java.util.Map;
 
-import eps.udl.cat.meistertaxi.Client;
-import eps.udl.cat.meistertaxi.Driver;
+import eps.udl.cat.meistertaxi.Models.Client;
+import eps.udl.cat.meistertaxi.Models.Driver;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.User;
+import eps.udl.cat.meistertaxi.Models.User;
 
 import static eps.udl.cat.meistertaxi.Constants.USERS_REFERENCE;
 

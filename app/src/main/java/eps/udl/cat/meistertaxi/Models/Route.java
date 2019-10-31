@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.Models;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;

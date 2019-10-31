@@ -23,11 +23,11 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import eps.udl.cat.meistertaxi.Driver;
+import eps.udl.cat.meistertaxi.Models.Driver;
 import eps.udl.cat.meistertaxi.Main.MainActivity;
 import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.Reservation;
-import eps.udl.cat.meistertaxi.ReservationAdapter;
+import eps.udl.cat.meistertaxi.Models.Reservation;
+import eps.udl.cat.meistertaxi.Adapters.ReservationAdapter;
 
 import static eps.udl.cat.meistertaxi.Constants.BAR;
 import static eps.udl.cat.meistertaxi.Constants.RESERVATION_REFERENCE;
