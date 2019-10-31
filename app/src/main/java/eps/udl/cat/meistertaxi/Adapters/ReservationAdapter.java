@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.Adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -9,6 +9,9 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+
+import eps.udl.cat.meistertaxi.Models.Reservation;
+import eps.udl.cat.meistertaxi.R;
 
 public class ReservationAdapter extends ArrayAdapter<Reservation> {
 

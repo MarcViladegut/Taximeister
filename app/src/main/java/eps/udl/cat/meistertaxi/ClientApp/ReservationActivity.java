@@ -18,8 +18,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.Reservation;
-import eps.udl.cat.meistertaxi.ReservationAdapter;
+import eps.udl.cat.meistertaxi.Models.Reservation;
+import eps.udl.cat.meistertaxi.Adapters.ReservationAdapter;
 
 import static eps.udl.cat.meistertaxi.Constants.RESERVATION_REFERENCE;
 

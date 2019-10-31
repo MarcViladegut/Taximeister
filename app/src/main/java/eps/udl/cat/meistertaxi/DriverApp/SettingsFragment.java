@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
-import eps.udl.cat.meistertaxi.Driver;
+import eps.udl.cat.meistertaxi.Models.Driver;
 import eps.udl.cat.meistertaxi.R;
 
 import static eps.udl.cat.meistertaxi.Constants.DRIVER_LICENCE_PREFERENCE;
