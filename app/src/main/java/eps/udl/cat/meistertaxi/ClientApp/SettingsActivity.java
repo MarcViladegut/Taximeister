@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import eps.udl.cat.meistertaxi.AppCompatPreferenceActivity;
-import eps.udl.cat.meistertaxi.Client;
+import eps.udl.cat.meistertaxi.Models.Client;
 import eps.udl.cat.meistertaxi.R;
 
 import static eps.udl.cat.meistertaxi.Constants.CURRENCY_PREFERENCE;

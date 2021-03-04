@@ -26,10 +26,10 @@ import com.google.firebase.iid.InstanceIdResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import eps.udl.cat.meistertaxi.Client;
-import eps.udl.cat.meistertaxi.Driver;
+import eps.udl.cat.meistertaxi.Models.Client;
+import eps.udl.cat.meistertaxi.Models.Driver;
 import eps.udl.cat.meistertaxi.R;
-import eps.udl.cat.meistertaxi.User;
+import eps.udl.cat.meistertaxi.Models.User;
 
 import static eps.udl.cat.meistertaxi.Constants.DEFAULT_GENDER;
 import static eps.udl.cat.meistertaxi.Constants.DEFAULT_LICENCE;

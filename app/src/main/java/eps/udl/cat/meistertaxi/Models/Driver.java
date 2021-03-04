@@ -1,24 +1,24 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.Models;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Client extends User {
-    private int gender;
+public class Driver extends User {
+    private long licence;
 
-    public Client() { }
+    public Driver(){ }
 
-    public Client(User user, int gender) {
+    public Driver(User user, long licence) {
         super(user.getName(), user.getEmail(), user.isDriver(), user.getToken());
-        this.gender = gender;
+        this.licence = licence;
     }
 
-    public int getGender() {
-        return gender;
+    public long getLicence() {
+        return licence;
     }
 
-    public void setGender(int gender) {
-        this.gender = gender;
+    public void setLicence(long licence) {
+        this.licence = licence;
     }
 
     /* Method to update information on database */
@@ -27,9 +27,9 @@ public class Client extends User {
         result.put("name", this.getName());
         result.put("surname", this.getSurname());
         result.put("email", this.getEmail());
-        result.put("gender", gender);
-        result.put("driver", this.isDriver());
         result.put("smoke", this.isSmoke());
+        result.put("driver", this.isDriver());
+        result.put("licence", this.getLicence());
         result.put("token", this.getToken());
 
         return result;

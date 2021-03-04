@@ -1,4 +1,4 @@
-package eps.udl.cat.meistertaxi;
+package eps.udl.cat.meistertaxi.Models;
 
 import android.content.Context;
 import android.location.Address;
